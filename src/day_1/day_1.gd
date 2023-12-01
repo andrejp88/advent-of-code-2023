@@ -1,4 +1,4 @@
-extends Node
+class_name Day1
 
 
 func get_calibration_value_part_1(s: String) -> int:
@@ -39,13 +39,13 @@ func name_to_digit(s: String) -> String:
 		_: return s
 
 
-func part_1(s: String) -> int:
+func part_1(s: String) -> String:
 	var lines := Array(s.split("\n", false))
 	var cal_vals := lines.map(get_calibration_value_part_1)
-	return cal_vals.reduce(func(acc: int, e: int) -> int: return acc + e)
+	return str(cal_vals.reduce(func(acc: int, e: int) -> int: return acc + e))
 
 
-func part_2(s: String) -> int:
+func part_2(s: String) -> String:
 	var lines := Array(s.split("\n", false))
 	var cal_vals := lines.map(get_calibration_value_part_2)
-	return cal_vals.reduce(func(acc: int, e: int) -> int: return acc + e)
+	return str(cal_vals.reduce(func(acc: int, e: int) -> int: return acc + e))
