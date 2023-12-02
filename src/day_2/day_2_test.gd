@@ -36,3 +36,20 @@ func test_part_1_real() -> void:
 
 	print("Day 2, Part 1: ", day_2.part_1(test_input))
 	pass_test("passed")
+
+
+func test_part_2_example() -> void:
+	var fa := FileAccess.open("res://src/day_2/test_input.txt", FileAccess.READ)
+	var test_input := fa.get_as_text()
+	fa.close()
+
+	assert_eq(day_2.part_2(test_input), "2286")
+
+
+func test_part_2_real() -> void:
+	var fa := FileAccess.open("res://src/day_2/input.txt", FileAccess.READ)
+	var test_input := fa.get_as_text()
+	fa.close()
+
+	print("Day 2, Part 2: ", day_2.part_2(test_input))
+	pass_test("passed")

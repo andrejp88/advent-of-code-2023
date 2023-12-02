@@ -25,6 +25,23 @@ func part_1(s: String) -> String:
 	return str(game_id_sum)
 
 
+func part_2(s: String) -> String:
+	var games := Array(s.split("\n", false)).map(parse_game)
+
+	var powers_of_minimum_sets := games.map(
+		func(game: Array) -> int:
+			var minimum_set: Array[int] = [0, 0, 0]
+			for round: Array[int] in game:
+				minimum_set[0] = maxi(minimum_set[0], round[0])
+				minimum_set[1] = maxi(minimum_set[1], round[1])
+				minimum_set[2] = maxi(minimum_set[2], round[2])
+
+			return minimum_set.reduce(func(acc: int, e: int) -> int: return acc * e)
+	)
+
+	return str(powers_of_minimum_sets.reduce(func(acc: int, e: int) -> int: return acc + e))
+
+
 func parse_game(game: String) -> Array:
 	var segments := game.split(":")
 	var rounds := segments[1].split(";")
