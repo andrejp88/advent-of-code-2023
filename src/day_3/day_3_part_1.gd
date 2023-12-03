@@ -57,6 +57,10 @@ func get_digit(tile_atlas_coords: Vector2i) -> int:
 		return -100000
 
 
+func clear_highlights() -> void:
+	tilemap.clear_layer(0)
+
+
 func highlight_all_numbers() -> void:
 	for tile_coords: Vector2i in tilemap.get_used_cells(1):
 		var tile_atlas_coords := tilemap.get_cell_atlas_coords(1, tile_coords)
@@ -75,6 +79,79 @@ func highlight_part_numbers() -> void:
 					flood_fill(neighbour, Vector2(4, 7), already_visited)
 
 
+func highlight_gears() -> Array:
+
+	var gears: Array = []
+
+	for tile_coords: Vector2i in tilemap.get_used_cells(1):
+
+		var tile_atlas_coords := tilemap.get_cell_atlas_coords(1, tile_coords)
+
+		if tile_atlas_coords == Vector2i(4, 1):
+			var already_visited := {tile_coords: true}
+			var neighbours := get_surrounding_cells_with_corners(tile_coords)
+			var numeric_neighbours: Array[Vector2i] = []
+			var distinct_part_neighbour_count := 0
+
+			for neighbour: Vector2i in neighbours:
+				var neighbour_atlas_coords := tilemap.get_cell_atlas_coords(1, neighbour)
+				if is_number_cell(neighbour_atlas_coords):
+					numeric_neighbours.push_back(neighbour)
+					var already_considered := false
+
+					for numeric_neighbour in numeric_neighbours:
+						if (
+							neighbour == numeric_neighbour + Vector2i(1, 0) or
+							neighbour == numeric_neighbour - Vector2i(1, 0)
+						):
+							already_considered = true
+
+					if not already_considered:
+						distinct_part_neighbour_count += 1
+
+			if distinct_part_neighbour_count == 2:
+				var this_gear: Array[int] = []
+				for neighbour: Vector2i in neighbours:
+					var neighbour_atlas_coords := tilemap.get_cell_atlas_coords(1, neighbour)
+					if not (neighbour in already_visited) and is_number_cell(neighbour_atlas_coords):
+						flood_fill(neighbour, Vector2(3, 7), already_visited)
+						this_gear.push_back(parse_part_number(neighbour))
+
+				gears.push_back(this_gear)
+
+	return gears
+
+
+func parse_part_number(tile_coords: Vector2i) -> int:
+	var part_number_start_x_offset := 0
+	while true:
+		var left_tile_coords := tile_coords + Vector2i(part_number_start_x_offset - 1, 0)
+		var left_tile_atlas_coords := tilemap.get_cell_atlas_coords(0, left_tile_coords)
+		if left_tile_atlas_coords == Vector2i(3, 7):
+			part_number_start_x_offset -= 1
+		else:
+			break
+
+	var part_number_start_coord := tile_coords + Vector2i(part_number_start_x_offset, 0)
+	var part_number_start_atlas_coord := tilemap.get_cell_atlas_coords(1, part_number_start_coord)
+	var this_number := get_digit(part_number_start_atlas_coord)
+	var i := 1
+
+	while true:
+		var next_tile_coords := part_number_start_coord + Vector2i(i, 0)
+		var next_tile_atlas_coords := tilemap.get_cell_atlas_coords(1, next_tile_coords)
+
+		if not is_number_cell(next_tile_atlas_coords):
+			break
+
+		this_number *= 10
+		this_number += get_digit(next_tile_atlas_coords)
+
+		i += 1
+
+	return this_number
+
+
 func get_part_numbers() -> Array[int]:
 	var part_numbers: Array[int] = []
 
@@ -87,9 +164,7 @@ func get_part_numbers() -> Array[int]:
 			# If it's the left-most number cell, parse the number, else we have already parsed it probably
 			var left_cell_coords := tile_coords - Vector2i(1, 0)
 			var left_cell_atlas_coords := tilemap.get_cell_atlas_coords(1, left_cell_coords)
-			var left_cell_data := tilemap.get_cell_tile_data(1, left_cell_coords)
 
-			#if left_cell_data == null or not is_number_cell(left_cell_coords):
 			if is_number_cell(left_cell_atlas_coords):
 				continue
 
@@ -189,14 +264,27 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _on_use_test_input_pressed() -> void:
+	$CanvasLayer/VBoxContainer/HBoxContainer2/NumPartNumbers.text = ""
+	$CanvasLayer/VBoxContainer/HBoxContainer2/PartNumberSum.text = ""
+	$CanvasLayer/VBoxContainer/HBoxContainer3/NumGears.text = ""
+	$CanvasLayer/VBoxContainer/HBoxContainer3/GearRatioSum.text = ""
+	$CanvasLayer/VBoxContainer/HBoxContainer3/CopyGearRatioSum.visible = false
+
 	repopulate_tilemap("res://src/day_3/test_input.txt")
 
 
 func _on_use_real_input_pressed() -> void:
+	$CanvasLayer/VBoxContainer/HBoxContainer2/NumPartNumbers.text = ""
+	$CanvasLayer/VBoxContainer/HBoxContainer2/PartNumberSum.text = ""
+	$CanvasLayer/VBoxContainer/HBoxContainer3/NumGears.text = ""
+	$CanvasLayer/VBoxContainer/HBoxContainer3/GearRatioSum.text = ""
+	$CanvasLayer/VBoxContainer/HBoxContainer3/CopyGearRatioSum.visible = false
+
 	repopulate_tilemap("res://src/day_3/input.txt")
 
 
 func _on_highlight_part_numbers_button_pressed() -> void:
+	clear_highlights()
 	highlight_all_numbers()
 	highlight_part_numbers()
 
@@ -205,3 +293,27 @@ func _on_highlight_part_numbers_button_pressed() -> void:
 
 	var part_number_sum := part_numbers.reduce(func(acc: int, e: int) -> int: return acc + e) as int
 	$CanvasLayer/VBoxContainer/HBoxContainer2/PartNumberSum.text = "Part Number Sum: %d" % part_number_sum
+
+
+func _on_highlight_gears_pressed() -> void:
+	clear_highlights()
+
+	var gear_ratios := highlight_gears()
+	$CanvasLayer/VBoxContainer/HBoxContainer3/NumGears.text = "Gear Count: %d" % gear_ratios.size()
+
+	var gear_ratio_sum := gear_ratios.reduce(
+		func(acc: int, e: Array[int]) -> int:
+			print(acc, ", ", e[0], " * ", e[1])
+			return acc + (e[0] * e[1]),
+		0
+	) as int
+	$CanvasLayer/VBoxContainer/HBoxContainer3/GearRatioSum.text = "Gear Ratio Sum: %d" % gear_ratio_sum
+
+	$CanvasLayer/VBoxContainer/HBoxContainer3/CopyGearRatioSum.visible = true
+
+
+func _on_copy_gear_ratio_sum_pressed() -> void:
+	var regex := RegEx.new()
+	regex.compile(r"\d+$")
+	var result := regex.search($CanvasLayer/VBoxContainer/HBoxContainer3/GearRatioSum.text).get_string()
+	DisplayServer.clipboard_set(result)
