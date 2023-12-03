@@ -9,23 +9,43 @@ script = ExtResource("1_jnw68")
 [node name="TileMap" type="TileMap" parent="."]
 tile_set = ExtResource("2_22obh")
 format = 2
-layer_0/tile_data = PackedInt32Array(0, 1, 0, 65536, 1, 1, 131072, 1, 2, 1, 65537, 0, 65537, 65537, 1, 131073, 65537, 2, 2, 131073, 0, 65538, 131073, 1, 131074, 131073, 2, 3, 196609, 0, 65539, 196609, 1, 131075, 196609, 2, 4, 262145, 0, 65540, 262145, 1, 5, 327681, 0, 65541, 327681, 1, 6, 393217, 0, 65542, 393217, 1, 7, 458753, 0, 65543, 458753, 1, 458759, 458753, 7)
+layer_0/name = "highlight"
+layer_0/tile_data = PackedInt32Array(4, 327681, 7, 5, 327681, 7, 6, 327681, 7, 7, 327681, 7, 0, 262145, 7, 1, 262145, 7, 2, 262145, 7, 3, 262145, 7)
+layer_1/name = "data"
+layer_1/tile_data = PackedInt32Array(0, 1, 0, 65536, 1, 1, 131072, 1, 2, 1, 65537, 0, 65537, 65537, 1, 131073, 65537, 2, 2, 131073, 0, 65538, 131073, 1, 131074, 131073, 2, 3, 196609, 0, 65539, 196609, 1, 131075, 196609, 2, 4, 262145, 0, 65540, 262145, 1, 5, 327681, 0, 65541, 327681, 1, 6, 393217, 0, 65542, 393217, 1, 7, 458753, 0, 65543, 458753, 1, 458759, 458753, 7)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer"]
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="UseTestInput" type="Button" parent="CanvasLayer/HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="UseTestInput" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "test_input.txt"
 
-[node name="UseRealInput" type="Button" parent="CanvasLayer/HBoxContainer"]
+[node name="UseRealInput" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "input.txt"
 
-[connection signal="pressed" from="CanvasLayer/HBoxContainer/UseTestInput" to="." method="_on_use_test_input_pressed"]
-[connection signal="pressed" from="CanvasLayer/HBoxContainer/UseRealInput" to="." method="_on_use_real_input_pressed"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HighlightPartNumbersButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Highlight Part Numbers"
+
+[node name="NumPartNumbers" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+
+[node name="PartNumberSum" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/UseTestInput" to="." method="_on_use_test_input_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/UseRealInput" to="." method="_on_use_real_input_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/HighlightPartNumbersButton" to="." method="_on_highlight_part_numbers_button_pressed"]
