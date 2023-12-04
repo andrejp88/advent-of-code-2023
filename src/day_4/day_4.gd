@@ -12,27 +12,30 @@ func parse_card(card_source: String) -> Dictionary:
 	}
 
 
-func get_point_value_of_line(line: String) -> int:
-	var line_parsed := parse_card(line)
-	var winning_numbers: Array = line_parsed["winning_numbers"]
-	var owned_numbers: Array = line_parsed["owned_numbers"]
+func get_number_of_matches(parsed_line: Dictionary) -> int:
+	var winning_numbers: Array = parsed_line["winning_numbers"]
+	var owned_numbers: Array = parsed_line["owned_numbers"]
 
-	var shared_numbers := 0
+	var matching_numbers := 0
 
 	for n: int in owned_numbers:
 		for m: int in winning_numbers:
 			if n == m:
-				shared_numbers += 1
+				matching_numbers += 1
 
-	if shared_numbers == 0:
-		return 0
-
-	return 2 ** (shared_numbers - 1)
+	return matching_numbers
 
 
 func part_1(input: String) -> int:
 	var lines := Array(input.split("\n", false))
-	var points := lines.map(get_point_value_of_line)
+	var parsed_lines := lines.map(parse_card)
+	var num_matches := parsed_lines.map(get_number_of_matches)
+	var points := num_matches.map(
+		func(e: int) -> int:
+			if e == 0: return 0
+			return 2 ** (e - 1)
+	)
+
 	var total := points.reduce(func(acc: int, e: int) -> int: return acc + e, 0) as int
 
 	return total

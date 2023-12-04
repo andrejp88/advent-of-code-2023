@@ -1,0 +1,101 @@
+[gd_scene load_steps=4 format=3 uid="uid://ddo6f6u0ng535"]
+
+[ext_resource type="Script" path="res://src/day_4/day_4_part_2.gd" id="1_j3hv7"]
+[ext_resource type="Theme" uid="uid://dwcsl72g2ktdp" path="res://src/monocraft_theme.tres" id="2_7hueo"]
+[ext_resource type="Texture2D" uid="uid://d4rymhlalrwg" path="res://src/day_4/token.png" id="2_xflld"]
+
+[node name="Day4Part2" type="Node2D"]
+script = ExtResource("1_j3hv7")
+
+[node name="Board" type="Node2D" parent="."]
+
+[node name="CardNumbers" type="HBoxContainer" parent="Board"]
+offset_right = 40.0
+offset_bottom = 40.0
+theme = ExtResource("2_7hueo")
+
+[node name="TokensContainer" type="HBoxContainer" parent="Board"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+grow_vertical = 0
+alignment = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Board/TokensContainer"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="Board/TokensContainer/VBoxContainer"]
+layout_mode = 2
+texture = ExtResource("2_xflld")
+expand_mode = 5
+stretch_mode = 3
+
+[node name="TextureRect2" type="TextureRect" parent="Board/TokensContainer/VBoxContainer"]
+layout_mode = 2
+texture = ExtResource("2_xflld")
+expand_mode = 5
+stretch_mode = 3
+
+[node name="TextureRect3" type="TextureRect" parent="Board/TokensContainer/VBoxContainer"]
+layout_mode = 2
+texture = ExtResource("2_xflld")
+expand_mode = 5
+stretch_mode = 3
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="Board/TokensContainer"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+alignment = 2
+
+[node name="TextureRect2" type="TextureRect" parent="Board/TokensContainer/VBoxContainer2"]
+layout_mode = 2
+texture = ExtResource("2_xflld")
+expand_mode = 5
+stretch_mode = 3
+
+[node name="TextureRect3" type="TextureRect" parent="Board/TokensContainer/VBoxContainer2"]
+layout_mode = 2
+texture = ExtResource("2_xflld")
+expand_mode = 5
+stretch_mode = 3
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="UseTestInput" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "test_input.txt"
+
+[node name="UseRealInput" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "input.txt"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="StepButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Step
+"
+
+[node name="CardCount" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="CardCounts" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/UseTestInput" to="." method="set_up_from_path" binds= ["res://src/day_4/test_input.txt"]]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/UseRealInput" to="." method="set_up_from_path" binds= ["res://src/day_4/input.txt"]]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/StepButton" to="." method="step"]
