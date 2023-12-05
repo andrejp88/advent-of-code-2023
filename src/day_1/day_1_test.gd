@@ -55,5 +55,5 @@ func test_part_2_real() -> void:
 	var test_input := fa.get_as_text()
 	fa.close()
 
-	print(day_1.part_2(test_input))
+	print("Day 1, Part 2: ", day_1.part_2(test_input))
 	pass_test("passed")
