@@ -30,7 +30,7 @@ func test_part_2_example() -> void:
 	var input := fa.get_as_text()
 	fa.close()
 
-	assert_eq(day_6.part_2(input), 123_456_789)
+	assert_eq(day_6.part_2(input), 71503)
 
 
 func test_part_2_real() -> void:
