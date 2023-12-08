@@ -6,11 +6,33 @@ func part_1(input: String) -> int:
 	var instructions: String = parsed_input[0]
 	var network: Dictionary = parsed_input[1]
 
-	return calculate_distance(network, instructions, "AAA", "ZZZ")
+	return calculate_distance(network, instructions, "AAA", func(node: String) -> bool: return node == "ZZZ")
 
 
 func part_2(input: String) -> int:
-	return 0
+	var parsed_input := parse_input(input)
+	var instructions: String = parsed_input[0]
+	var network: Dictionary = parsed_input[1]
+	var start_nodes: Array[String] = []
+	start_nodes.assign(network.keys().filter(func(key: String) -> bool: return key.ends_with("A")))
+
+	print("Starting from nodes: ", start_nodes)
+
+	# We could rewrite calculate_distance to run concurrently for multiple start nodes, but that's inefficient
+	# Instead, calculate how many steps it takes each one individually using the existing calculate_distance,
+	# then get the least common multiple of these results.
+	# Reminds me of the trick to solving the monkey problem from last year.
+
+	#return calculate_distance_concurrently(network, instructions, start_nodes)
+
+	var steps_per_starting_position: Array[int] = []
+
+	steps_per_starting_position.assign(start_nodes.map(
+		func(start_node: String) -> int:
+			return calculate_distance(network, instructions, start_node, func(node: String) -> bool: return node.ends_with("Z"))
+	))
+
+	return lcm_n(steps_per_starting_position)
 
 
 func parse_input(input: String) -> Array:
@@ -32,12 +54,12 @@ func parse_input(input: String) -> Array:
 	return [instructions, network]
 
 
-func calculate_distance(network: Dictionary, instructions: String, start_node: String, end_node: String) -> int:
+func calculate_distance(network: Dictionary, instructions: String, start_node: String, end_node_rule: Callable) -> int:
 
 	var steps_traveled := 0
 	var current_node := start_node
 
-	while current_node != end_node:
+	while not end_node_rule.call(current_node):
 		var current_instruction_index := steps_traveled % instructions.length()
 		var current_instruction := instructions[current_instruction_index]
 
@@ -50,3 +72,35 @@ func calculate_distance(network: Dictionary, instructions: String, start_node: S
 		steps_traveled += 1
 
 	return steps_traveled
+
+
+# Copied from Wikipedia, tested anyway just in case
+func gcd(a: int, b: int) -> int:
+	while b != 0:
+		var t := b
+		b = a % b
+		a = t
+
+	return a
+
+
+func lcm(a: int, b: int) -> int:
+	# Can ignore this integer_division warnings since gcd(a, b)
+	# should be a factor of a, assuming it's implemented right
+	@warning_ignore("integer_division")
+	return a / gcd(a, b) * b
+
+
+func lcm_n(ns: Array[int]) -> int:
+	match ns:
+		[var a, var b]:
+			return lcm(a, b)
+
+		[var a, var b, ..]:
+			var next_ns: Array[int] = [lcm(a, b)]
+			next_ns.append_array(ns.slice(2))
+			return lcm_n(next_ns)
+
+		_:
+			printerr("Unexpected input to lcm_n: %s" % [ns])
+			return -1
