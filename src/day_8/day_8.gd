@@ -16,8 +16,6 @@ func part_2(input: String) -> int:
 	var start_nodes: Array[String] = []
 	start_nodes.assign(network.keys().filter(func(key: String) -> bool: return key.ends_with("A")))
 
-	print("Starting from nodes: ", start_nodes)
-
 	# We could rewrite calculate_distance to run concurrently for multiple start nodes, but that's inefficient
 	# Instead, calculate how many steps it takes each one individually using the existing calculate_distance,
 	# then get the least common multiple of these results.
@@ -92,15 +90,4 @@ func lcm(a: int, b: int) -> int:
 
 
 func lcm_n(ns: Array[int]) -> int:
-	match ns:
-		[var a, var b]:
-			return lcm(a, b)
-
-		[var a, var b, ..]:
-			var next_ns: Array[int] = [lcm(a, b)]
-			next_ns.append_array(ns.slice(2))
-			return lcm_n(next_ns)
-
-		_:
-			printerr("Unexpected input to lcm_n: %s" % [ns])
-			return -1
+	return ns.reduce(lcm, 1)
