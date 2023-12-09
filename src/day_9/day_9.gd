@@ -12,7 +12,15 @@ func part_1(input: String) -> int:
 
 
 func part_2(input: String) -> int:
-	return 0
+	var histories := parse_input(input)
+
+	for history: Array[int] in histories:
+		history.reverse()
+
+	var extrapolated_histories := histories.map(extrapolate_next)
+	var last_values := extrapolated_histories.map(func(history: Array[int]) -> int: return history[history.size() - 1])
+	var summed: int = last_values.reduce(Util.sumi, 0)
+	return summed
 
 
 func parse_input(input: String) -> Array:
