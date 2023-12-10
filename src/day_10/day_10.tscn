@@ -66,6 +66,22 @@ text = "test_input_complex.txt"
 layout_mode = 2
 text = "input.txt"
 
+[node name="LoadPart2SimpleInput" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "part_2_simple.txt"
+
+[node name="LoadPart2SqueezeInput" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "part_2_squeeze.txt"
+
+[node name="LoadPart2LargeInput" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "part_2_large.txt"
+
+[node name="LoadPart2JunkInput" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "part_2_junk.txt"
+
 [node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
 layout_mode = 2
 
@@ -85,4 +101,8 @@ text = "0"
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadTestInputSimple" to="." method="load_and_populate_from_file" binds= ["res://src/day_10/test_input_simple.txt"]]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadTestInputComplex" to="." method="load_and_populate_from_file" binds= ["res://src/day_10/test_input_complex.txt"]]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadRealInput" to="." method="load_and_populate_from_file" binds= ["res://src/day_10/input.txt"]]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadPart2SimpleInput" to="." method="load_and_populate_from_file" binds= ["res://src/day_10/part_2_simple.txt"]]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadPart2SqueezeInput" to="." method="load_and_populate_from_file" binds= ["res://src/day_10/part_2_squeeze.txt"]]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadPart2LargeInput" to="." method="load_and_populate_from_file" binds= ["res://src/day_10/part_2_large.txt"]]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadPart2JunkInput" to="." method="load_and_populate_from_file" binds= ["res://src/day_10/part_2_junk.txt"]]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/PlayButton" to="." method="play"]
