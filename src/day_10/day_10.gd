@@ -119,6 +119,7 @@ func load_and_populate_from_file(path: String) -> void:
 
 func repopulate_tilemap(input: String) -> void:
 
+	is_simulating = false
 	tilemap.clear()
 	pipe_circumference = 0
 	pipe_circumference_value_label.text = "Not yet calculated"
