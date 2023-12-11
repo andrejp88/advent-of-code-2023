@@ -46,18 +46,7 @@ func expand_universe() -> void:
 	# 1. add empty space between every row and column (even emptier than the intergalactic vacuum, what a concept)
 	for x: int in range(initial_pos.x + initial_size.x - 1, initial_pos.x - 1, -1):
 		for y: int in range(initial_pos.y + initial_size.y - 1, initial_pos.y - 1, -1):
-			var old_coords := Vector2i(x, y)
-			var new_coords := Vector2i(x * 2, y * 2)
-
-			var starfield_atlas_coords := tilemap.get_cell_atlas_coords(tilemap_layer_starfield, old_coords)
-			tilemap.set_cell(tilemap_layer_starfield, old_coords, -1, Vector2i(-1, -1))
-			tilemap.set_cell(tilemap_layer_starfield, new_coords, 1, starfield_atlas_coords)
-
-			var galaxy_cell_data := tilemap.get_cell_tile_data(tilemap_layer_galaxies, old_coords)
-			if galaxy_cell_data != null:
-				var galaxy_atlas_coords := tilemap.get_cell_atlas_coords(tilemap_layer_galaxies, old_coords)
-				tilemap.set_cell(tilemap_layer_galaxies, old_coords, -1, Vector2i(-1, -1))
-				tilemap.set_cell(tilemap_layer_galaxies, new_coords, 1, galaxy_atlas_coords)
+			move_cell(Vector2i(x, y), Vector2i(x * 2, y * 2))
 
 
 	# 2. Fill in extra columns where needed
@@ -98,7 +87,6 @@ func expand_universe() -> void:
 		for y: int in range(initial_pos.y, initial_pos.y + initial_size.y * 2):
 			var starfield_cell_data := tilemap.get_cell_tile_data(tilemap_layer_starfield, Vector2i(x, y))
 			if starfield_cell_data != null:
-				print("Found non-empty tile in column ", x)
 				should_remove_this_column = false
 				break
 
@@ -111,7 +99,6 @@ func expand_universe() -> void:
 				for y: int in range(initial_pos.y, initial_pos.y + initial_size.y * 2):
 					var starfield_cell_data := tilemap.get_cell_tile_data(tilemap_layer_starfield, Vector2i(candidate_x, y))
 					if starfield_cell_data != null:
-						print("Found non-empty tile in column ", candidate_x)
 						is_column_populated = true
 						break
 
@@ -122,21 +109,10 @@ func expand_universe() -> void:
 			if next_non_empty_column == -1:
 				break
 
-			print("Column ", x, " is empty so it will be removed by taking column ", next_non_empty_column, " and placing it at column ", x)
 
 			for y: int in range(initial_pos.y, initial_pos.y + initial_size.y * 2):
-				var old_coords := Vector2i(next_non_empty_column, y)
-				var new_coords := Vector2i(x, y)
+				move_cell(Vector2i(next_non_empty_column, y), Vector2i(x, y))
 
-				var starfield_atlas_coords := tilemap.get_cell_atlas_coords(tilemap_layer_starfield, old_coords)
-				tilemap.set_cell(tilemap_layer_starfield, old_coords, -1, Vector2i(-1, -1))
-				tilemap.set_cell(tilemap_layer_starfield, new_coords, 1, starfield_atlas_coords)
-
-				var galaxy_cell_data := tilemap.get_cell_tile_data(tilemap_layer_galaxies, old_coords)
-				if galaxy_cell_data != null:
-					var galaxy_atlas_coords := tilemap.get_cell_atlas_coords(tilemap_layer_galaxies, old_coords)
-					tilemap.set_cell(tilemap_layer_galaxies, old_coords, -1, Vector2i(-1, -1))
-					tilemap.set_cell(tilemap_layer_galaxies, new_coords, 1, galaxy_atlas_coords)
 
 	# 4. Remove the emptier-than-empty rows
 	for y: int in range(initial_pos.y, initial_pos.y + initial_size.y * 2):
@@ -146,7 +122,6 @@ func expand_universe() -> void:
 		for x: int in range(initial_pos.x, initial_pos.x + initial_size.x * 2):
 			var starfield_cell_data := tilemap.get_cell_tile_data(tilemap_layer_starfield, Vector2i(x, y))
 			if starfield_cell_data != null:
-				print("Found non-empty tile in row ", y)
 				should_remove_this_row = false
 				break
 
@@ -159,7 +134,6 @@ func expand_universe() -> void:
 				for x: int in range(initial_pos.x, initial_pos.x + initial_size.x * 2):
 					var starfield_cell_data := tilemap.get_cell_tile_data(tilemap_layer_starfield, Vector2i(x, candidate_y))
 					if starfield_cell_data != null:
-						print("Found non-empty tile in row ", candidate_y)
 						is_column_populated = true
 						break
 
@@ -170,18 +144,18 @@ func expand_universe() -> void:
 			if next_non_empty_row == -1:
 				break
 
-			print("Row ", y, " is empty so it will be removed by taking row ", next_non_empty_row, " and placing it at row ", y)
 
 			for x: int in range(initial_pos.x, initial_pos.x + initial_size.x * 2):
-				var old_coords := Vector2i(x, next_non_empty_row)
-				var new_coords := Vector2i(x, y)
+				move_cell(Vector2i(x, next_non_empty_row), Vector2i(x, y))
 
-				var starfield_atlas_coords := tilemap.get_cell_atlas_coords(tilemap_layer_starfield, old_coords)
-				tilemap.set_cell(tilemap_layer_starfield, old_coords, -1, Vector2i(-1, -1))
-				tilemap.set_cell(tilemap_layer_starfield, new_coords, 1, starfield_atlas_coords)
 
-				var galaxy_cell_data := tilemap.get_cell_tile_data(tilemap_layer_galaxies, old_coords)
-				if galaxy_cell_data != null:
-					var galaxy_atlas_coords := tilemap.get_cell_atlas_coords(tilemap_layer_galaxies, old_coords)
-					tilemap.set_cell(tilemap_layer_galaxies, old_coords, -1, Vector2i(-1, -1))
-					tilemap.set_cell(tilemap_layer_galaxies, new_coords, 1, galaxy_atlas_coords)
+func move_cell(from: Vector2i, to: Vector2i) -> void:
+	var starfield_atlas_coords := tilemap.get_cell_atlas_coords(tilemap_layer_starfield, from)
+	tilemap.set_cell(tilemap_layer_starfield, from, -1, Vector2i(-1, -1))
+	tilemap.set_cell(tilemap_layer_starfield, to, 1, starfield_atlas_coords)
+
+	var galaxy_cell_data := tilemap.get_cell_tile_data(tilemap_layer_galaxies, from)
+	if galaxy_cell_data != null:
+		var galaxy_atlas_coords := tilemap.get_cell_atlas_coords(tilemap_layer_galaxies, from)
+		tilemap.set_cell(tilemap_layer_galaxies, from, -1, Vector2i(-1, -1))
+		tilemap.set_cell(tilemap_layer_galaxies, to, 1, galaxy_atlas_coords)
