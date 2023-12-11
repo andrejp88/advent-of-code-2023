@@ -83,14 +83,13 @@ script = ExtResource("1_v8jpx")
 [node name="MouseCamera" parent="." instance=ExtResource("2_6sbjm")]
 
 [node name="TileMap" type="TileMap" parent="."]
+z_index = -1
 scale = Vector2(0.125, 0.125)
 tile_set = SubResource("TileSet_xs3ku")
 format = 2
 layer_0/name = "Starfield"
 layer_1/name = "Galaxies"
 layer_1/tile_data = PackedInt32Array()
-
-[node name="Lines" type="Node2D" parent="."]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
