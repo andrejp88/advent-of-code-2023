@@ -15,7 +15,14 @@ func load_and_repopulate_tilemap(path: String) -> void:
 
 
 func repopulate_tilemap(input: String) -> void:
+
 	tilemap.clear()
+	$CanvasLayer/VBoxContainer/HBoxContainer3/SumOfAllDistanceLabel.text = "Not Yet Calculated"
+	$CanvasLayer/VBoxContainer/HBoxContainer2/ExpandUniverseButton.disabled = false
+	$CanvasLayer/VBoxContainer/HBoxContainer3/CalculateAllDistancesButton.disabled = true
+	for child: Node in $Lines.get_children():
+		child.queue_free()
+
 	var lines := input.split("\n", false)
 
 	for y: int in lines.size():
@@ -114,7 +121,7 @@ func expand_universe() -> void:
 				move_cell(Vector2i(next_non_empty_column, y), Vector2i(x, y))
 
 
-	# 4. Remove the emptier-than-empty rows
+	# 5. Remove the emptier-than-empty rows
 	for y: int in range(initial_pos.y, initial_pos.y + initial_size.y * 2):
 
 		var should_remove_this_row := true
@@ -149,6 +156,11 @@ func expand_universe() -> void:
 				move_cell(Vector2i(x, next_non_empty_row), Vector2i(x, y))
 
 
+	# 6. Post-expansion work
+	$CanvasLayer/VBoxContainer/HBoxContainer3/CalculateAllDistancesButton.disabled = false
+	$CanvasLayer/VBoxContainer/HBoxContainer2/ExpandUniverseButton.disabled = true
+
+
 func move_cell(from: Vector2i, to: Vector2i) -> void:
 	var starfield_atlas_coords := tilemap.get_cell_atlas_coords(tilemap_layer_starfield, from)
 	tilemap.set_cell(tilemap_layer_starfield, from, -1, Vector2i(-1, -1))
@@ -159,3 +171,42 @@ func move_cell(from: Vector2i, to: Vector2i) -> void:
 		var galaxy_atlas_coords := tilemap.get_cell_atlas_coords(tilemap_layer_galaxies, from)
 		tilemap.set_cell(tilemap_layer_galaxies, from, -1, Vector2i(-1, -1))
 		tilemap.set_cell(tilemap_layer_galaxies, to, 1, galaxy_atlas_coords)
+
+
+func calculate_all_distances() -> void:
+
+	var galaxies: Array[Vector2i] = []
+
+	var tilemap_pos := tilemap.get_used_rect().position
+	var tilemap_size := tilemap.get_used_rect().size
+
+	for x: int in range(tilemap_pos.x, tilemap_pos.x + tilemap_size.x):
+		for y: int in range(tilemap_pos.y, tilemap_pos.y + tilemap_size.y):
+			var galaxy_cell_data := tilemap.get_cell_tile_data(tilemap_layer_galaxies, Vector2i(x, y))
+			if galaxy_cell_data != null:
+				galaxies.push_back(Vector2i(x, y))
+
+	var running_total := 0
+
+
+
+	for galaxy_a: Vector2i in galaxies:
+		var galaxy_a_idx := galaxy_a.x + (galaxy_a.y * tilemap_size.x)
+
+		for galaxy_b: Vector2i in galaxies:
+			var galaxy_b_idx := galaxy_b.x + (galaxy_b.y * tilemap_size.x)
+
+			if galaxy_b_idx > galaxy_a_idx:
+				# Add a visual line
+				var line_2d := Line2D.new()
+				line_2d.add_point((Vector2(galaxy_a) + Vector2(0.5, 0.5)) * tilemap.scale.x * tilemap.tile_set.tile_size.x)
+				line_2d.add_point((Vector2(galaxy_b) + Vector2(0.5, 0.5)) * tilemap.scale.x * tilemap.tile_set.tile_size.x)
+				line_2d.antialiased = true
+				line_2d.width = 2
+				line_2d.default_color = Color(1, 1, 1, 0.1)
+				$Lines.add_child(line_2d)
+
+				# Calculate the distance
+				running_total += absi(galaxy_a.x - galaxy_b.x) + absi(galaxy_a.y - galaxy_b.y)
+
+	$CanvasLayer/VBoxContainer/HBoxContainer3/SumOfAllDistanceLabel.text = str(running_total)
