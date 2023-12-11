@@ -143,32 +143,6 @@ text = "empty columns:"
 layout_mode = 2
 text = "n/a"
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
-visible = false
-layout_mode = 2
-
-[node name="ExpandUniverseButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
-layout_mode = 2
-disabled = true
-text = "Expand Universe"
-
-[node name="HBoxContainer3" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
-visible = false
-layout_mode = 2
-
-[node name="CalculateAllDistancesButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer3"]
-layout_mode = 2
-disabled = true
-text = "Calculate All Distances"
-
-[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer3"]
-layout_mode = 2
-text = "Sum of all distances:"
-
-[node name="SumOfAllDistanceLabel" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer3"]
-layout_mode = 2
-text = "Not Yet Calculated"
-
 [node name="HBoxContainer4" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
 layout_mode = 2
 
@@ -209,7 +183,5 @@ text = "Copy"
 
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadTestInputButton" to="." method="load_and_repopulate_tilemap" binds= ["res://src/day_11/test_input.txt"]]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadRealInputButton" to="." method="load_and_repopulate_tilemap" binds= ["res://src/day_11/input.txt"]]
-[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/ExpandUniverseButton" to="." method="expand_universe"]
-[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer3/CalculateAllDistancesButton" to="." method="calculate_all_distances"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer4/CopyPart1Result" to="." method="_on_copy_part_1_result_pressed"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer5/CopyPart2Result" to="." method="_on_copy_part_2_result_pressed"]
