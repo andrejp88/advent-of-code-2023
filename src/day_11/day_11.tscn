@@ -7,6 +7,7 @@
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_yk1uf"]
 texture = ExtResource("4_yorqa")
 texture_region_size = Vector2i(512, 512)
+use_texture_padding = false
 0:0/0 = 0
 1:0/0 = 0
 2:0/0 = 0
@@ -112,7 +113,38 @@ text = "test_input.txt"
 layout_mode = 2
 text = "input.txt"
 
+[node name="HBoxContainer6" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="NumEmptyRows" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+text = "n/a"
+
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+text = "empty rows:"
+
+[node name="EmptyRows" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+text = "n/a"
+
+[node name="HBoxContainer7" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="NumEmptyColumns" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer7"]
+layout_mode = 2
+text = "n/a"
+
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer7"]
+layout_mode = 2
+text = "empty columns:"
+
+[node name="EmptyColumns" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer7"]
+layout_mode = 2
+text = "n/a"
+
 [node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+visible = false
 layout_mode = 2
 
 [node name="ExpandUniverseButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
@@ -121,6 +153,7 @@ disabled = true
 text = "Expand Universe"
 
 [node name="HBoxContainer3" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+visible = false
 layout_mode = 2
 
 [node name="CalculateAllDistancesButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer3"]
@@ -136,7 +169,47 @@ text = "Sum of all distances:"
 layout_mode = 2
 text = "Not Yet Calculated"
 
+[node name="HBoxContainer4" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="CalculateAllDistancesWith2×ExpansionButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+text = "Calculate All Distances With 2× Expansion"
+
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+text = "Sum:"
+
+[node name="SumOfAllDistancesWith2×ExpansionLabel" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+text = "Not Yet Calculated"
+
+[node name="CopyPart1Result" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+text = "Copy"
+
+[node name="HBoxContainer5" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="CalculateAllDistancesWith1,000,000×ExpansionButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+text = "Calculate All Distances With 1,000,000× Expansion"
+
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+text = "Sum:"
+
+[node name="SumOfAllDistancesWith1,000,000×ExpansionLabel" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+text = "Not Yet Calculated"
+
+[node name="CopyPart2Result" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+text = "Copy"
+
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadTestInputButton" to="." method="load_and_repopulate_tilemap" binds= ["res://src/day_11/test_input.txt"]]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadRealInputButton" to="." method="load_and_repopulate_tilemap" binds= ["res://src/day_11/input.txt"]]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/ExpandUniverseButton" to="." method="expand_universe"]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer3/CalculateAllDistancesButton" to="." method="calculate_all_distances"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer4/CopyPart1Result" to="." method="_on_copy_part_1_result_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer5/CopyPart2Result" to="." method="_on_copy_part_2_result_pressed"]
