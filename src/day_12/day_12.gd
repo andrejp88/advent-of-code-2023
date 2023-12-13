@@ -3,62 +3,27 @@ class_name Day12
 const Util := preload("res://src/util.gd")
 
 
-enum Condition {
-	operational,
-	damaged,
-	unknown,
-}
-
-
 class Row:
-	var conditions: Array[Condition]
+	var conditions: String
 	var range_sizes: Array[int]
 
-	func _init(p_conditions: Array[Condition], p_range_sizes: Array[int]) -> void:
+	func _init(p_conditions: String, p_range_sizes: Array[int]) -> void:
 		self.conditions = p_conditions
 		self.range_sizes = p_range_sizes
 
 	func apply_part_2_twist() -> void:
-		var new_conditions: Array[Condition] = []
-		conditions = [conditions, conditions, conditions, conditions, conditions].reduce(
-			func(acc: Array[Condition], e: Array[Condition]) -> Array[Condition]:
-				if acc.is_empty():
-					acc.append_array(e)
-				else:
-					acc.append(Condition.unknown)
-					acc.append_array(e)
-
-				return acc,
-			new_conditions,
-		)
+		conditions = "?".join([conditions, conditions, conditions, conditions, conditions])
 
 		var new_range_sizes: Array[int] = []
-		range_sizes = [range_sizes, range_sizes, range_sizes, range_sizes, range_sizes].reduce(
-			func(acc: Array[int], e: Array[int]) -> Array[int]:
-				acc.append_array(e)
-				return acc,
-			new_range_sizes,
-		)
+		range_sizes = [range_sizes, range_sizes, range_sizes, range_sizes, range_sizes].reduce(join_range_sizes_for_part_2, new_range_sizes)
+
+	func join_range_sizes_for_part_2(acc: Array[int], e: Array[int]) -> Array[int]:
+		acc.append_array(e)
+		return acc
 
 	func _to_string() -> String:
 		return "Row(%s, %s)" % [
-			"\"" + conditions.reduce(
-				func(acc: String, e: Condition) -> String:
-					var symbol := ""
-					match e:
-						Condition.operational:
-							symbol = "."
-						Condition.damaged:
-							symbol = "#"
-						Condition.unknown:
-							symbol = "?"
-						_:
-							printerr("Unknown Condition in match expression: ", e)
-
-					return acc + symbol
-					,
-					""
-			) + "\"",
+			"\"" + conditions + "\"",
 			range_sizes,
 		]
 
@@ -88,21 +53,8 @@ func parse_input(input: String) -> Array[Row]:
 
 func parse_row(row: String) -> Row:
 	var row_split := row.split(" ")
-	var conditions_source := row_split[0]
+	var conditions := row_split[0]
 	var range_sizes_source := row_split[1]
-
-	var conditions: Array[Condition] = []
-
-	for condition_symbol: String in conditions_source:
-		match condition_symbol:
-			".":
-				conditions.push_back(Condition.operational)
-			"#":
-				conditions.push_back(Condition.damaged)
-			"?":
-				conditions.push_back(Condition.unknown)
-			_:
-				printerr("Unknown condition symbol: ", condition_symbol)
 
 	var range_sizes: Array[int] = []
 
@@ -115,15 +67,20 @@ func parse_row(row: String) -> Row:
 	return Row.new(conditions, range_sizes)
 
 
+var unique_calls_to_cpa := {}
+
+
 func calculate_possible_arrangements(row: Row, should_print_debug: bool = false, indent: String = "") -> int:
+
+	unique_calls_to_cpa[str(row)] = true
 
 	if should_print_debug:
 		print("%sTesting %s" % [indent, row])
 
 	# 1. Optimization: Fail if total number of damaged entries is wrong
-	var num_damaged_actual_in_current_row := row.conditions.count(Condition.damaged)
+	var num_damaged_actual_in_current_row := row.conditions.count("#")
 	var num_damaged_desired_in_current_row: int = row.range_sizes.reduce(Util.sumi, 0)
-	var max_damaged_possible_in_current_row: int = row.conditions.count(Condition.damaged) + row.conditions.count(Condition.unknown)
+	var max_damaged_possible_in_current_row: int = row.conditions.count("#") + row.conditions.count("?")
 
 	if (
 		num_damaged_actual_in_current_row > num_damaged_desired_in_current_row or
@@ -137,9 +94,9 @@ func calculate_possible_arrangements(row: Row, should_print_debug: bool = false,
 	# 2. Get remaining unknown indices
 	var indices_of_unknowns: Array[int] = []
 
-	for i: int in row.conditions.size():
+	for i: int in row.conditions.length():
 		var condition := row.conditions[i]
-		if condition == Condition.unknown:
+		if condition == "?":
 			indices_of_unknowns.push_back(i)
 
 
@@ -185,18 +142,18 @@ func calculate_possible_arrangements(row: Row, should_print_debug: bool = false,
 	# recursive calls.
 
 	var index_of_first_beyond_range := indices_of_unknowns[0]
-	while row.conditions[index_of_first_beyond_range] == Condition.unknown:
+	while row.conditions[index_of_first_beyond_range] == "?":
 		index_of_first_beyond_range += 1
-		if index_of_first_beyond_range == row.conditions.size():
+		if index_of_first_beyond_range == row.conditions.length():
 			break
 
 	if (
 		indices_of_unknowns[0] == 0 or
-		row.conditions[indices_of_unknowns[0] - 1] == Condition.operational
+		row.conditions[indices_of_unknowns[0] - 1] == "."
 	):
 		if (
-			index_of_first_beyond_range >= row.conditions.size() or
-			row.conditions[index_of_first_beyond_range] == Condition.operational
+			index_of_first_beyond_range >= row.conditions.length() or
+			row.conditions[index_of_first_beyond_range] == "."
 		):
 
 			var length_of_unknowns := index_of_first_beyond_range - indices_of_unknowns[0]
@@ -224,24 +181,24 @@ func calculate_possible_arrangements(row: Row, should_print_debug: bool = false,
 				if number_of_arrangements == 0:
 					continue
 
-				var sample_success_conditions := row.conditions.duplicate()
+				var sample_success_conditions := row.conditions
 				var next_target_index := indices_of_unknowns[0]
 
 
 				for range_length: int in ranges_to_try:
 					for i: int in range_length:
-						sample_success_conditions[next_target_index] = Condition.damaged
+						sample_success_conditions[next_target_index] = "#"
 						next_target_index += 1
 
-					if next_target_index >= sample_success_conditions.size():
+					if next_target_index >= sample_success_conditions.length():
 						break
 
-					sample_success_conditions[next_target_index] = Condition.operational
+					sample_success_conditions[next_target_index] = "."
 					next_target_index += 1
 
 				# Fill in the rest with operationals, if needed
 				while next_target_index < index_of_first_beyond_range:
-					sample_success_conditions[next_target_index] = Condition.operational
+					sample_success_conditions[next_target_index] = "."
 					next_target_index += 1
 
 				known_combinations += number_of_arrangements * calculate_possible_arrangements(Row.new(sample_success_conditions, row.range_sizes), should_print_debug, indent + "\t")
@@ -256,27 +213,26 @@ func calculate_possible_arrangements(row: Row, should_print_debug: bool = false,
 
 		var num_possible_arrangements := 0
 
-		var idealized_conditions := row.conditions.duplicate()
-		idealized_conditions[indices_of_unknowns[0]] = Condition.operational
-		idealized_conditions[index_of_first_beyond_range - 1] = Condition.operational
+		var idealized_conditions := row.conditions
+		idealized_conditions[indices_of_unknowns[0]] = "."
+		idealized_conditions[index_of_first_beyond_range - 1] = "."
 		num_possible_arrangements += calculate_possible_arrangements(Row.new(idealized_conditions, row.range_sizes), should_print_debug, indent + "\t")
 
 		# We do the other two possible combinations manually so we can skip part 6
-		# TODO
 
-		var semi_ideal_conditions_left := row.conditions.duplicate()
-		semi_ideal_conditions_left[indices_of_unknowns[0]] = Condition.operational
-		semi_ideal_conditions_left[index_of_first_beyond_range - 1] = Condition.damaged
+		var semi_ideal_conditions_left := row.conditions
+		semi_ideal_conditions_left[indices_of_unknowns[0]] = "."
+		semi_ideal_conditions_left[index_of_first_beyond_range - 1] = "#"
 		num_possible_arrangements += calculate_possible_arrangements(Row.new(semi_ideal_conditions_left, row.range_sizes), should_print_debug, indent + "\t")
 
-		var semi_ideal_conditions_right := row.conditions.duplicate()
-		semi_ideal_conditions_right[indices_of_unknowns[0]] = Condition.damaged
-		semi_ideal_conditions_right[index_of_first_beyond_range - 1] = Condition.operational
+		var semi_ideal_conditions_right := row.conditions
+		semi_ideal_conditions_right[indices_of_unknowns[0]] = "#"
+		semi_ideal_conditions_right[index_of_first_beyond_range - 1] = "."
 		num_possible_arrangements += calculate_possible_arrangements(Row.new(semi_ideal_conditions_right, row.range_sizes), should_print_debug, indent + "\t")
 
-		var non_ideal_conditions := row.conditions.duplicate()
-		non_ideal_conditions[indices_of_unknowns[0]] = Condition.damaged
-		non_ideal_conditions[index_of_first_beyond_range - 1] = Condition.damaged
+		var non_ideal_conditions := row.conditions
+		non_ideal_conditions[indices_of_unknowns[0]] = "#"
+		non_ideal_conditions[index_of_first_beyond_range - 1] = "#"
 		num_possible_arrangements += calculate_possible_arrangements(Row.new(non_ideal_conditions, row.range_sizes), should_print_debug, indent + "\t")
 
 		return num_possible_arrangements
@@ -285,37 +241,37 @@ func calculate_possible_arrangements(row: Row, should_print_debug: bool = false,
 	# 6. Otherwise, there are still unknowns left so check all possible sub-arrangements
 	var num_possible_sub_arrangements := 0
 
-	var with_first_unknown_operational := row.conditions.duplicate()
-	with_first_unknown_operational[indices_of_unknowns[0]] = Condition.operational
+	var with_first_unknown_operational := row.conditions
+	with_first_unknown_operational[indices_of_unknowns[0]] = "."
 	var operational_row := Row.new(with_first_unknown_operational, row.range_sizes)
 	num_possible_sub_arrangements += calculate_possible_arrangements(operational_row, should_print_debug, indent + "\t")
 
-	var with_first_unknown_damaged := row.conditions.duplicate()
-	with_first_unknown_damaged[indices_of_unknowns[0]] = Condition.damaged
+	var with_first_unknown_damaged := row.conditions
+	with_first_unknown_damaged[indices_of_unknowns[0]] = "#"
 	var damaged_row := Row.new(with_first_unknown_damaged, row.range_sizes)
 	num_possible_sub_arrangements += calculate_possible_arrangements(damaged_row, should_print_debug, indent + "\t")
 
 	return num_possible_sub_arrangements
 
 
-func describe_damaged_ranges(conditions: Array[Condition]) -> Array[int]:
+func describe_damaged_ranges(conditions: String) -> Array[int]:
 
 	var result: Array[int] = []
 	var start_new := true
 
-	for condition: Condition in conditions:
+	for condition: String in conditions:
 		match condition:
-			Condition.operational:
+			".":
 				start_new = true
 
-			Condition.damaged:
+			"#":
 				if start_new:
 					start_new = false
 					result.push_back(1)
 				else:
 					result[result.size() - 1] += 1
 
-			Condition.unknown:
+			"?":
 				if not start_new:
 					# Discard the ongoing one since we can't be sure of its length.
 					result.pop_back()
@@ -327,24 +283,24 @@ func describe_damaged_ranges(conditions: Array[Condition]) -> Array[int]:
 	return result
 
 
-func describe_damaged_ranges_with_unfinished(conditions: Array[Condition]) -> Array[int]:
+func describe_damaged_ranges_with_unfinished(conditions: String) -> Array[int]:
 
 	var result: Array[int] = []
 	var start_new := true
 
-	for condition: Condition in conditions:
+	for condition: String in conditions:
 		match condition:
-			Condition.operational:
+			".":
 				start_new = true
 
-			Condition.damaged:
+			"#":
 				if start_new:
 					start_new = false
 					result.push_back(1)
 				else:
 					result[result.size() - 1] += 1
 
-			Condition.unknown:
+			"?":
 				break
 
 			_:

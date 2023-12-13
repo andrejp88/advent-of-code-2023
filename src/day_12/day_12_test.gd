@@ -3,59 +3,23 @@ extends GutTest
 
 var day: Day12
 var test_input_parsed := [
-	Day12.Row.new(
-		[Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged],
-		[1, 1, 3],
-	),
-	Day12.Row.new(
-		[Day12.Condition.operational, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.operational, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.operational, Day12.Condition.operational, Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.operational],
-		[1, 1, 3],
-	),
-	Day12.Row.new(
-		[Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.unknown],
-		[1, 3, 1, 6],
-	),
-	Day12.Row.new(
-		[Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.operational, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.operational, Day12.Condition.operational],
-		[4, 1, 1],
-	),
-	Day12.Row.new(
-		[Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.operational],
-		[1, 6, 5],
-	),
-	Day12.Row.new(
-		[Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown],
-		[3, 2, 1],
-	),
+	Day12.Row.new("???.###", [1, 1, 3]),
+	Day12.Row.new(".??..??...?##.", [1, 1, 3]),
+	Day12.Row.new("?#?#?#?#?#?#?#?", [1, 3, 1, 6]),
+	Day12.Row.new("????.#...#...", [4, 1, 1]),
+	Day12.Row.new("????.######..#####.", [1, 6, 5]),
+	Day12.Row.new("?###????????", [3, 2, 1]),
 ]
 
 var test_input_parsed_part_2: Array[Day12.Row] = (
 	func() -> Array[Day12.Row]:
 		var result: Array[Day12.Row] = [
-			Day12.Row.new(
-				[Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged],
-				[1, 1, 3],
-			),
-			Day12.Row.new(
-				[Day12.Condition.operational, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.operational, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.operational, Day12.Condition.operational, Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.operational],
-				[1, 1, 3],
-			),
-			Day12.Row.new(
-				[Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.unknown],
-				[1, 3, 1, 6],
-			),
-			Day12.Row.new(
-				[Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.operational, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.operational, Day12.Condition.operational],
-				[4, 1, 1],
-			),
-			Day12.Row.new(
-				[Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.operational],
-				[1, 6, 5],
-			),
-			Day12.Row.new(
-				[Day12.Condition.unknown, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown, Day12.Condition.unknown],
-				[3, 2, 1],
-			),
+			Day12.Row.new("???.###", [1, 1, 3]),
+			Day12.Row.new(".??..??...?##.", [1, 1, 3]),
+			Day12.Row.new("?#?#?#?#?#?#?#?", [1, 3, 1, 6]),
+			Day12.Row.new("????.#...#...", [4, 1, 1]),
+			Day12.Row.new("????.######..#####.", [1, 6, 5]),
+			Day12.Row.new("?###????????", [3, 2, 1]),
 		]
 
 		for row: Day12.Row in result:
@@ -172,105 +136,54 @@ func test_calculate_possible_arrangements_part_1() -> void:
 
 
 func test_describe_damaged_ranges() -> void:
-	assert_eq(
-		day.describe_damaged_ranges([Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged]),
-		[1, 1, 3],
-	)
-
-	assert_eq(
-		day.describe_damaged_ranges([Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged]),
-		[3, 3],
-	)
-
-	assert_eq(
-		day.describe_damaged_ranges([Day12.Condition.damaged]),
-		[1],
-	)
-
-	assert_eq(
-		day.describe_damaged_ranges([Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.operational]),
-		[1],
-	)
-
-	assert_eq(
-		day.describe_damaged_ranges([Day12.Condition.operational]),
-		[],
-	)
-
-	assert_eq(
-		day.describe_damaged_ranges([Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.damaged]),
-		[1],
-	)
-
-	assert_eq(
-		day.describe_damaged_ranges([Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.unknown]),
-		[1],
-	)
+	assert_eq(day.describe_damaged_ranges("#.#.###"), [1, 1, 3])
+	assert_eq(day.describe_damaged_ranges("###.###"), [3, 3])
+	assert_eq(day.describe_damaged_ranges("#"), [1])
+	assert_eq(day.describe_damaged_ranges(".#."), [1])
+	assert_eq(day.describe_damaged_ranges("."), [])
+	assert_eq(day.describe_damaged_ranges(".#.?.##"), [1])
+	assert_eq(day.describe_damaged_ranges(".#.##?"), [1])
 
 
 func test_describe_damaged_ranges_with_unfinished() -> void:
-	assert_eq(
-		day.describe_damaged_ranges_with_unfinished([Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged]),
-		[1, 1, 3],
-	)
-
-	assert_eq(
-		day.describe_damaged_ranges_with_unfinished([Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.damaged]),
-		[3, 3],
-	)
-
-	assert_eq(
-		day.describe_damaged_ranges_with_unfinished([Day12.Condition.damaged]),
-		[1],
-	)
-
-	assert_eq(
-		day.describe_damaged_ranges_with_unfinished([Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.operational]),
-		[1],
-	)
-
-	assert_eq(
-		day.describe_damaged_ranges_with_unfinished([Day12.Condition.operational]),
-		[],
-	)
-
-	assert_eq(
-		day.describe_damaged_ranges_with_unfinished([Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.damaged]),
-		[1],
-	)
-
-	assert_eq(
-		day.describe_damaged_ranges_with_unfinished([Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.damaged, Day12.Condition.unknown]),
-		[1, 2],
-	)
+	assert_eq(day.describe_damaged_ranges_with_unfinished("#.#.###"), [1, 1, 3])
+	assert_eq(day.describe_damaged_ranges_with_unfinished("###.###"), [3, 3])
+	assert_eq(day.describe_damaged_ranges_with_unfinished("#"), [1])
+	assert_eq(day.describe_damaged_ranges_with_unfinished(".#."), [1])
+	assert_eq(day.describe_damaged_ranges_with_unfinished("."), [])
+	assert_eq(day.describe_damaged_ranges_with_unfinished(".#.?.##"), [1])
+	assert_eq(day.describe_damaged_ranges_with_unfinished(".#.##?"), [1, 2])
 
 
 func test_apply_part_2_twist() -> void:
-	var row := Day12.Row.new(
-		[Day12.Condition.operational, Day12.Condition.damaged],
-		[1],
-	)
-
+	var row := Day12.Row.new(".#", [1])
 	row.apply_part_2_twist()
-
-	assert_rows_eq(row, Day12.Row.new(
-		[Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.damaged, Day12.Condition.unknown, Day12.Condition.operational, Day12.Condition.damaged],
-		[1, 1, 1, 1, 1],
-	))
+	assert_rows_eq(row, Day12.Row.new(".#?.#?.#?.#?.#", [1, 1, 1, 1, 1]))
 
 
 func test_calculate_possible_arrangements_part_2() -> void:
+	var start_time := Time.get_unix_time_from_system()
 	assert_eq(day.calculate_possible_arrangements(test_input_parsed_part_2[0]), 1)
 	assert_eq(day.calculate_possible_arrangements(test_input_parsed_part_2[1]), 16384)
 	assert_eq(day.calculate_possible_arrangements(test_input_parsed_part_2[2]), 1)
 	assert_eq(day.calculate_possible_arrangements(test_input_parsed_part_2[3]), 16)
 	assert_eq(day.calculate_possible_arrangements(test_input_parsed_part_2[4]), 2500)
 	assert_eq(day.calculate_possible_arrangements(test_input_parsed_part_2[5]), 506250)
+	print("Time elapsed: %.3f" % [Time.get_unix_time_from_system() - start_time])
 
 
-func test_calculate_possible_arrangements_problematic_part_2() -> void:
+func test_calculate_possible_arrangements_problematic_part_2_1() -> void:
 	var row := day.parse_row("???.????.?..????? 3,1,1,3")
-	var result := day.calculate_possible_arrangements(row, true)
+	row.apply_part_2_twist()
+	var result := day.calculate_possible_arrangements(row)
+	print(result)
+	pass_test("passed")
+
+
+func test_calculate_possible_arrangements_problematic_part_2_2() -> void:
+	var row := day.parse_row("?#??????#???????? 12,1")
+	row.apply_part_2_twist()
+	var result := day.calculate_possible_arrangements(row)
 	print(result)
 	pass_test("passed")
 
