@@ -69,8 +69,9 @@ layout_mode = 2
 layout_mode = 2
 text = "←"
 
-[node name="Container3" type="Control" parent="CanvasLayer/VBoxContainer/GridContainer"]
+[node name="SpinCycleButton" type="Button" parent="CanvasLayer/VBoxContainer/GridContainer"]
 layout_mode = 2
+text = "↺"
 
 [node name="RollEastButton" type="Button" parent="CanvasLayer/VBoxContainer/GridContainer"]
 layout_mode = 2
@@ -83,6 +84,13 @@ layout_mode = 2
 layout_mode = 2
 text = "↓"
 
+[node name="HBoxContainer3" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="SimulateBillionCyclesButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "Simulate 1,000,000,000 spin cycles"
+
 [node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
 layout_mode = 2
 
@@ -94,6 +102,44 @@ text = "Load On North Edge:"
 layout_mode = 2
 text = "Not Yet Calculated"
 
+[node name="VSeparator" type="VSeparator" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Load On East Edge:"
+
+[node name="LoadOnEastEdgeLabel" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Not Yet Calculated"
+
+[node name="VSeparator2" type="VSeparator" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Load On South Edge:"
+
+[node name="LoadOnSouthEdgeLabel" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Not Yet Calculated"
+
+[node name="VSeparator3" type="VSeparator" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+
+[node name="Label4" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Load On West Edge:"
+
+[node name="LoadOnWestEdgeLabel" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Not Yet Calculated"
+
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadTestInputButton" to="." method="load_and_populate" binds= ["res://src/day_14/test_input.txt"]]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadInputButton" to="." method="load_and_populate" binds= ["res://src/day_14/input.txt"]]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/GridContainer/RollNorthButton" to="." method="tilt_platform_up"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/GridContainer/RollWestButton" to="." method="tilt_platform_left"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/GridContainer/SpinCycleButton" to="." method="perform_spin_cycle"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/GridContainer/RollEastButton" to="." method="tilt_platform_right"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/GridContainer/RollSouthButton" to="." method="tilt_platform_down"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer3/SimulateBillionCyclesButton" to="." method="simulate_billion_cycles"]
