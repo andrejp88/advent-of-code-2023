@@ -172,11 +172,12 @@ func is_arrangment_compliant(row: Row, damaged_range_description: Array[int], sh
 func is_valid_arrangement_so_far(row: Row, should_print_debug: bool, indent: String) -> bool:
 	var damaged_range_description_with_unfinished_result := describe_damaged_ranges_with_unfinished(row.conditions)
 	var damaged_range_description_with_unfinisheds: Array[int] = damaged_range_description_with_unfinished_result[0]
-	var last_entry_is_unfinished: bool = damaged_range_description_with_unfinished_result[1]
+	var last_entry_max_possible_size: int = damaged_range_description_with_unfinished_result[1]
+	var last_entry_is_unfinished := last_entry_max_possible_size == 0 or last_entry_max_possible_size != damaged_range_description_with_unfinisheds[damaged_range_description_with_unfinisheds.size() - 1]
 
 	for i: int in damaged_range_description_with_unfinisheds.size():
 		if i == damaged_range_description_with_unfinisheds.size() - 1 and last_entry_is_unfinished:
-			if damaged_range_description_with_unfinisheds[i] > row.range_sizes[i]:
+			if damaged_range_description_with_unfinisheds[i] > row.range_sizes[i] or last_entry_max_possible_size < row.range_sizes[i]:
 				if should_print_debug:
 					print("%sDescription of range so far does not match expected range description: %s does not start with %s" % [indent, row.range_sizes, damaged_range_description_with_unfinisheds])
 				return false
@@ -352,29 +353,43 @@ func describe_damaged_ranges_with_unfinished(conditions: String) -> Array:
 
 	var result: Array[int] = []
 	var start_new := true
-	var last_entry_is_unfinished := false
+	var last_entry_max_possible_size := 0
+	var getting_last_entry_max_size := false
 
 	for condition: String in conditions:
 		match condition:
 			".":
+				if getting_last_entry_max_size:
+					break
 				start_new = true
 
 			"#":
 				if start_new:
 					start_new = false
 					result.push_back(1)
+				elif getting_last_entry_max_size:
+					last_entry_max_possible_size += 1
 				else:
 					result[result.size() - 1] += 1
 
 			"?":
-				if not start_new:
-					last_entry_is_unfinished = true
-				break
+				if getting_last_entry_max_size:
+					last_entry_max_possible_size += 1
+				elif start_new:
+					if result.size() > 0:
+						last_entry_max_possible_size = result[result.size() - 1]
+					break
+				else:
+					getting_last_entry_max_size = true
+					last_entry_max_possible_size = result[result.size() - 1] + 1
 
 			_:
 				printerr("Unexpected Condition in match expression: ", condition)
 
-	return [result, last_entry_is_unfinished]
+	if last_entry_max_possible_size == 0 and result.size() > 0:
+		last_entry_max_possible_size = result[result.size() - 1]
+
+	return [result, last_entry_max_possible_size]
 
 
 func pascals_triangle(a: int, b: int) -> int:

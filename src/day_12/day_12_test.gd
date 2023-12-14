@@ -146,13 +146,15 @@ func test_describe_damaged_ranges() -> void:
 
 
 func test_describe_damaged_ranges_with_unfinished() -> void:
-	assert_eq(day.describe_damaged_ranges_with_unfinished("#.#.###"), [1, 1, 3])
-	assert_eq(day.describe_damaged_ranges_with_unfinished("###.###"), [3, 3])
-	assert_eq(day.describe_damaged_ranges_with_unfinished("#"), [1])
-	assert_eq(day.describe_damaged_ranges_with_unfinished(".#."), [1])
-	assert_eq(day.describe_damaged_ranges_with_unfinished("."), [])
-	assert_eq(day.describe_damaged_ranges_with_unfinished(".#.?.##"), [1])
-	assert_eq(day.describe_damaged_ranges_with_unfinished(".#.##?"), [1, 2])
+	assert_eq(day.describe_damaged_ranges_with_unfinished("#.#.###"), [[1, 1, 3], 3])
+	assert_eq(day.describe_damaged_ranges_with_unfinished("###.###"), [[3, 3], 3])
+	assert_eq(day.describe_damaged_ranges_with_unfinished("#"), [[1], 1])
+	assert_eq(day.describe_damaged_ranges_with_unfinished(".#."), [[1], 1])
+	assert_eq(day.describe_damaged_ranges_with_unfinished("."), [[], 0])
+	assert_eq(day.describe_damaged_ranges_with_unfinished(".#.?.##"), [[1], 1])
+	assert_eq(day.describe_damaged_ranges_with_unfinished(".#.##?"), [[1, 2], 3])
+	assert_eq(day.describe_damaged_ranges_with_unfinished(".#.##????.#"), [[1, 2], 6])
+	assert_eq(day.describe_damaged_ranges_with_unfinished(".#.##????##"), [[1, 2], 8])
 
 
 func test_apply_part_2_twist() -> void:
