@@ -67,67 +67,23 @@ func parse_row(row: String) -> Row:
 	return Row.new(conditions, range_sizes)
 
 
-var unique_calls_to_cpa := {}
-
-
 func calculate_possible_arrangements(row: Row, should_print_debug: bool = false, indent: String = "") -> int:
-
-	unique_calls_to_cpa[str(row)] = true
 
 	if should_print_debug:
 		print("%sTesting %s" % [indent, row])
 
-	# 1. Optimization: Fail if total number of damaged entries is wrong
-	var num_damaged_actual_in_current_row := row.conditions.count("#")
-	var num_damaged_desired_in_current_row: int = row.range_sizes.reduce(Util.sumi, 0)
-	var max_damaged_possible_in_current_row: int = row.conditions.count("#") + row.conditions.count("?")
-
-	if (
-		num_damaged_actual_in_current_row > num_damaged_desired_in_current_row or
-		max_damaged_possible_in_current_row < num_damaged_desired_in_current_row
-	):
-		if should_print_debug:
-			print("%sSkipping sub-arrangements since there are too many or too few possible damaged entries." % [indent])
+	if not is_total_damaged_count_valid(row, should_print_debug, indent):
 		return 0
 
-
-	# 2. Get remaining unknown indices
-	var indices_of_unknowns: Array[int] = []
-
-	for i: int in row.conditions.length():
-		var condition := row.conditions[i]
-		if condition == "?":
-			indices_of_unknowns.push_back(i)
-
-
-	# 3. No more unknowns left? Check if this is a valid arrangement
+	var first_unknown_index := row.conditions.find("?")
 	var damaged_range_description := describe_damaged_ranges(row.conditions)
-
-	if indices_of_unknowns.is_empty():
-		if damaged_range_description == row.range_sizes:
-			if should_print_debug:
-				print("%sThis matches!" % [indent])
+	if first_unknown_index == -1:
+		if is_arrangment_compliant(row, damaged_range_description, should_print_debug, indent):
 			return 1
-		else:
-			# This arrangement isn't valid: There are no unknowns but damaged range description doesn't match
-			if should_print_debug:
-				print("%sThis doesn't match" % [indent])
-			return 0
+		return 0
 
-
-	# 4. Optimization: Check if it's a valid arrangement so far
-	var damaged_range_description_with_unfinisheds := describe_damaged_ranges_with_unfinished(row.conditions)
-	for i: int in damaged_range_description_with_unfinisheds.size():
-		if i == damaged_range_description_with_unfinisheds.size() - 1:
-			if damaged_range_description_with_unfinisheds[i] > row.range_sizes[i]:
-				if should_print_debug:
-					print("%sDescription of range so far does not match expected range description: %s does not start with %s" % [indent, row.range_sizes, damaged_range_description_with_unfinisheds])
-				return 0
-		else:
-			if damaged_range_description_with_unfinisheds[i] != row.range_sizes[i]:
-				if should_print_debug:
-					print("%sDescription of range so far does not match expected range description: %s does not start with %s" % [indent, row.range_sizes, damaged_range_description_with_unfinisheds])
-				return 0
+	if not is_valid_arrangement_so_far(row, should_print_debug, indent):
+		return 0
 
 
 	# 5. Pascal's Optimization
@@ -140,114 +96,221 @@ func calculate_possible_arrangements(row: Row, should_print_debug: bool = false,
 	#                                ^
 	# ...then we can figure out the number of valid combinations in this range and skip a bunch of
 	# recursive calls.
-
-	var index_of_first_beyond_range := indices_of_unknowns[0]
+	var index_of_first_beyond_range := first_unknown_index
 	while row.conditions[index_of_first_beyond_range] == "?":
 		index_of_first_beyond_range += 1
 		if index_of_first_beyond_range == row.conditions.length():
 			break
 
 	if (
-		indices_of_unknowns[0] == 0 or
-		row.conditions[indices_of_unknowns[0] - 1] == "."
+		first_unknown_index == 0 or
+		row.conditions[first_unknown_index - 1] == "."
+	) and (
+		index_of_first_beyond_range >= row.conditions.length() or
+		row.conditions[index_of_first_beyond_range] == "."
 	):
-		if (
-			index_of_first_beyond_range >= row.conditions.length() or
-			row.conditions[index_of_first_beyond_range] == "."
-		):
-
-			var length_of_unknowns := index_of_first_beyond_range - indices_of_unknowns[0]
-			var max_damaged_ranges := ceili(length_of_unknowns / 2.0)
-			var ranges_matched_so_far := damaged_range_description.size()
-			var remaining_ranges := row.range_sizes.slice(ranges_matched_so_far, ranges_matched_so_far + max_damaged_ranges)
-
-			if should_print_debug:
-				print("%sRow has a clean batch of unknowns from %s to %s" % [indent, indices_of_unknowns[0], index_of_first_beyond_range])
-
-			var known_combinations := 0
-
-			for num_ranges_to_try: int in range(remaining_ranges.size(), -1, -1):
-				var ranges_to_try := remaining_ranges.slice(0, num_ranges_to_try)
-				var sum_of_ranges: int = 0 if ranges_to_try.is_empty() else ranges_to_try.reduce(Util.sumi)
-
-				var number_of_arrangements := pascals_triangle(
-					num_ranges_to_try,
-					length_of_unknowns - sum_of_ranges - num_ranges_to_try + 1,
-				)
-
-				if should_print_debug:
-					print("%s%s ways to fill the batch with these range sizes: %s" % [indent, number_of_arrangements, ranges_to_try])
-
-				if number_of_arrangements == 0:
-					continue
-
-				var sample_success_conditions := row.conditions
-				var next_target_index := indices_of_unknowns[0]
+		return pascals_optimization(row, damaged_range_description, index_of_first_beyond_range, should_print_debug, indent)
 
 
-				for range_length: int in ranges_to_try:
-					for i: int in range_length:
-						sample_success_conditions[next_target_index] = "#"
-						next_target_index += 1
-
-					if next_target_index >= sample_success_conditions.length():
-						break
-
-					sample_success_conditions[next_target_index] = "."
-					next_target_index += 1
-
-				# Fill in the rest with operationals, if needed
-				while next_target_index < index_of_first_beyond_range:
-					sample_success_conditions[next_target_index] = "."
-					next_target_index += 1
-
-				known_combinations += number_of_arrangements * calculate_possible_arrangements(Row.new(sample_success_conditions, row.range_sizes), should_print_debug, indent + "\t")
-
-			return known_combinations
-
-
-	# 5.1 Create convenient ranges if they don't yet exist for section 5
-	if index_of_first_beyond_range - indices_of_unknowns[0] >= 3: # I guess
-		if should_print_debug:
-			print("%sTesting with idealized conditions" % [indent])
-
-		var num_possible_arrangements := 0
-
-		var idealized_conditions := row.conditions
-		idealized_conditions[indices_of_unknowns[0]] = "."
-		idealized_conditions[index_of_first_beyond_range - 1] = "."
-		num_possible_arrangements += calculate_possible_arrangements(Row.new(idealized_conditions, row.range_sizes), should_print_debug, indent + "\t")
-
-		# We do the other two possible combinations manually so we can skip part 6
-
-		var semi_ideal_conditions_left := row.conditions
-		semi_ideal_conditions_left[indices_of_unknowns[0]] = "."
-		semi_ideal_conditions_left[index_of_first_beyond_range - 1] = "#"
-		num_possible_arrangements += calculate_possible_arrangements(Row.new(semi_ideal_conditions_left, row.range_sizes), should_print_debug, indent + "\t")
-
-		var semi_ideal_conditions_right := row.conditions
-		semi_ideal_conditions_right[indices_of_unknowns[0]] = "#"
-		semi_ideal_conditions_right[index_of_first_beyond_range - 1] = "."
-		num_possible_arrangements += calculate_possible_arrangements(Row.new(semi_ideal_conditions_right, row.range_sizes), should_print_debug, indent + "\t")
-
-		var non_ideal_conditions := row.conditions
-		non_ideal_conditions[indices_of_unknowns[0]] = "#"
-		non_ideal_conditions[index_of_first_beyond_range - 1] = "#"
-		num_possible_arrangements += calculate_possible_arrangements(Row.new(non_ideal_conditions, row.range_sizes), should_print_debug, indent + "\t")
-
-		return num_possible_arrangements
+	if index_of_first_beyond_range - first_unknown_index >= 3: # I guess
+		return pascals_convenience(row, index_of_first_beyond_range, should_print_debug, indent)
 
 
 	# 6. Otherwise, there are still unknowns left so check all possible sub-arrangements
+	return search_for_solutions(row, should_print_debug, indent + "\t")
+
+
+
+func is_total_damaged_count_valid(row: Row, should_print_debug: bool, indent: String) -> bool:
+	var num_damaged_actual_in_current_row := row.conditions.count("#")
+	var num_damaged_desired_in_current_row: int = row.range_sizes.reduce(Util.sumi, 0)
+	var max_damaged_possible_in_current_row: int = row.conditions.count("#") + row.conditions.count("?")
+
+	if (
+		num_damaged_actual_in_current_row > num_damaged_desired_in_current_row or
+		max_damaged_possible_in_current_row < num_damaged_desired_in_current_row
+	):
+		if should_print_debug:
+			print("%sSkipping sub-arrangements since there are too many or too few possible damaged entries." % [indent])
+		return false
+
+	return true
+
+
+func get_indices_of_unknowns(row: Row) -> Array[int]:
+	var indices_of_unknowns: Array[int] = []
+
+	for i: int in row.conditions.length():
+		var condition := row.conditions[i]
+		if condition == "?":
+			indices_of_unknowns.push_back(i)
+
+	return indices_of_unknowns
+
+
+func get_first_unknown_index(row: Row) -> int:
+	for i: int in row.conditions.length():
+		var condition := row.conditions[i]
+		if condition == "?":
+			return i
+
+	return -1
+
+
+func is_arrangment_compliant(row: Row, damaged_range_description: Array[int], should_print_debug: bool, indent: String) -> bool:
+	if damaged_range_description == row.range_sizes:
+		if should_print_debug:
+			print("%sThis matches!" % [indent])
+		return true
+	else:
+		# This arrangement isn't valid: There are no unknowns but damaged range description doesn't match
+		if should_print_debug:
+			print("%sThis doesn't match" % [indent])
+		return false
+
+
+func is_valid_arrangement_so_far(row: Row, should_print_debug: bool, indent: String) -> bool:
+	var damaged_range_description_with_unfinisheds := describe_damaged_ranges_with_unfinished(row.conditions)
+
+	for i: int in damaged_range_description_with_unfinisheds.size():
+		if i == damaged_range_description_with_unfinisheds.size() - 1:
+			if damaged_range_description_with_unfinisheds[i] > row.range_sizes[i]:
+				if should_print_debug:
+					print("%sDescription of range so far does not match expected range description: %s does not start with %s" % [indent, row.range_sizes, damaged_range_description_with_unfinisheds])
+				return false
+		else:
+			if damaged_range_description_with_unfinisheds[i] != row.range_sizes[i]:
+				if should_print_debug:
+					print("%sDescription of range so far does not match expected range description: %s does not start with %s" % [indent, row.range_sizes, damaged_range_description_with_unfinisheds])
+				return false
+
+	return true
+
+
+func pascals_optimization(
+	row: Row,
+	damaged_range_description: Array[int],
+	index_of_first_beyond_range: int,
+	should_print_debug: bool,
+	indent: String
+) -> int:
+	var first_unknown_index := row.conditions.find("?")
+	var length_of_unknowns := index_of_first_beyond_range - first_unknown_index
+	var max_damaged_ranges := ceili(length_of_unknowns / 2.0)
+	var ranges_matched_so_far := damaged_range_description.size()
+	var remaining_ranges := row.range_sizes.slice(ranges_matched_so_far, ranges_matched_so_far + max_damaged_ranges)
+
+	if should_print_debug:
+		print("%sRow has a clean batch of unknowns from %s to %s" % [indent, first_unknown_index, index_of_first_beyond_range])
+
+	var known_combinations := 0
+
+	for num_ranges_to_try: int in range(remaining_ranges.size(), -1, -1):
+		var ranges_to_try := remaining_ranges.slice(0, num_ranges_to_try)
+		var sum_of_ranges: int = 0 if ranges_to_try.is_empty() else ranges_to_try.reduce(Util.sumi)
+
+		var number_of_arrangements := pascals_triangle(
+			num_ranges_to_try,
+			length_of_unknowns - sum_of_ranges - num_ranges_to_try + 1,
+		)
+
+		if should_print_debug:
+			print("%s%s ways to fill the batch with these range sizes: %s" % [indent, number_of_arrangements, ranges_to_try])
+
+		if number_of_arrangements == 0:
+			continue
+
+		var sample_success_conditions := fill_sample_conditions_from_range_sizes(row, ranges_to_try, index_of_first_beyond_range)
+
+		known_combinations += number_of_arrangements * calculate_possible_arrangements(Row.new(sample_success_conditions, row.range_sizes), should_print_debug, indent + "\t")
+
+	return known_combinations
+
+
+func fill_sample_conditions_from_range_sizes(row: Row, ranges_to_try: Array[int], index_of_first_beyond_range: int) -> String:
+	var sample_success_conditions := row.conditions
+	var next_target_index := row.conditions.find("?")
+
+	for range_length: int in ranges_to_try:
+		for i: int in range_length:
+			sample_success_conditions[next_target_index] = "#"
+			next_target_index += 1
+
+		if next_target_index >= sample_success_conditions.length():
+			break
+
+		sample_success_conditions[next_target_index] = "."
+		next_target_index += 1
+
+	# Fill in the rest with operationals, if needed
+	while next_target_index < index_of_first_beyond_range:
+		sample_success_conditions[next_target_index] = "."
+		next_target_index += 1
+
+	return sample_success_conditions
+
+
+var total_solutions_from_idealized := 0
+var total_solutions_from_semi_left := 0
+var total_solutions_from_semi_right := 0
+var total_solutions_from_non_ideal := 0
+
+
+func pascals_convenience(row: Row, index_of_first_beyond_range: int, should_print_debug: bool, indent: String) -> int:
+	if should_print_debug:
+		print("%sTesting with idealized conditions" % [indent])
+
+	var num_possible_arrangements := 0
+	var first_unknown_index := row.conditions.find("?")
+
+	var idealized_conditions := row.conditions
+	idealized_conditions[first_unknown_index] = "."
+	idealized_conditions[index_of_first_beyond_range - 1] = "."
+	var solutions_from_idealized := calculate_possible_arrangements(Row.new(idealized_conditions, row.range_sizes), should_print_debug, indent + "\t")
+	num_possible_arrangements += solutions_from_idealized
+	if indent == "":
+		total_solutions_from_idealized += solutions_from_idealized
+
+	# We do the other two possible combinations manually so we can skip part 6
+
+	var semi_ideal_conditions_left := row.conditions
+	semi_ideal_conditions_left[first_unknown_index] = "."
+	semi_ideal_conditions_left[index_of_first_beyond_range - 1] = "#"
+	var solutions_from_semi_left := calculate_possible_arrangements(Row.new(semi_ideal_conditions_left, row.range_sizes), should_print_debug, indent + "\t")
+	num_possible_arrangements += solutions_from_semi_left
+	if indent == "":
+		total_solutions_from_semi_left += solutions_from_semi_left
+
+	var semi_ideal_conditions_right := row.conditions
+	semi_ideal_conditions_right[first_unknown_index] = "#"
+	semi_ideal_conditions_right[index_of_first_beyond_range - 1] = "."
+	var solutions_from_semi_right := calculate_possible_arrangements(Row.new(semi_ideal_conditions_right, row.range_sizes), should_print_debug, indent + "\t")
+	num_possible_arrangements += solutions_from_semi_right
+	if indent == "":
+		total_solutions_from_semi_right += solutions_from_semi_right
+
+	var non_ideal_conditions := row.conditions
+	non_ideal_conditions[first_unknown_index] = "#"
+	non_ideal_conditions[index_of_first_beyond_range - 1] = "#"
+	var solutions_from_non_ideal := calculate_possible_arrangements(Row.new(non_ideal_conditions, row.range_sizes), should_print_debug, indent + "\t")
+	num_possible_arrangements += solutions_from_non_ideal
+	if indent == "":
+		total_solutions_from_non_ideal += solutions_from_non_ideal
+
+	return num_possible_arrangements
+
+
+func search_for_solutions(row: Row, should_print_debug: bool, indent: String) -> int:
 	var num_possible_sub_arrangements := 0
+	var first_unknown_index := row.conditions.find("?")
 
 	var with_first_unknown_operational := row.conditions
-	with_first_unknown_operational[indices_of_unknowns[0]] = "."
+	with_first_unknown_operational[first_unknown_index] = "."
 	var operational_row := Row.new(with_first_unknown_operational, row.range_sizes)
 	num_possible_sub_arrangements += calculate_possible_arrangements(operational_row, should_print_debug, indent + "\t")
 
 	var with_first_unknown_damaged := row.conditions
-	with_first_unknown_damaged[indices_of_unknowns[0]] = "#"
+	with_first_unknown_damaged[first_unknown_index] = "#"
 	var damaged_row := Row.new(with_first_unknown_damaged, row.range_sizes)
 	num_possible_sub_arrangements += calculate_possible_arrangements(damaged_row, should_print_debug, indent + "\t")
 
