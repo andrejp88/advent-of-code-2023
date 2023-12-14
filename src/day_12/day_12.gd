@@ -170,10 +170,12 @@ func is_arrangment_compliant(row: Row, damaged_range_description: Array[int], sh
 
 
 func is_valid_arrangement_so_far(row: Row, should_print_debug: bool, indent: String) -> bool:
-	var damaged_range_description_with_unfinisheds := describe_damaged_ranges_with_unfinished(row.conditions)
+	var damaged_range_description_with_unfinished_result := describe_damaged_ranges_with_unfinished(row.conditions)
+	var damaged_range_description_with_unfinisheds: Array[int] = damaged_range_description_with_unfinished_result[0]
+	var last_entry_is_unfinished: bool = damaged_range_description_with_unfinished_result[1]
 
 	for i: int in damaged_range_description_with_unfinisheds.size():
-		if i == damaged_range_description_with_unfinisheds.size() - 1:
+		if i == damaged_range_description_with_unfinisheds.size() - 1 and last_entry_is_unfinished:
 			if damaged_range_description_with_unfinisheds[i] > row.range_sizes[i]:
 				if should_print_debug:
 					print("%sDescription of range so far does not match expected range description: %s does not start with %s" % [indent, row.range_sizes, damaged_range_description_with_unfinisheds])
@@ -346,10 +348,11 @@ func describe_damaged_ranges(conditions: String) -> Array[int]:
 	return result
 
 
-func describe_damaged_ranges_with_unfinished(conditions: String) -> Array[int]:
+func describe_damaged_ranges_with_unfinished(conditions: String) -> Array:
 
 	var result: Array[int] = []
 	var start_new := true
+	var last_entry_is_unfinished := false
 
 	for condition: String in conditions:
 		match condition:
@@ -364,12 +367,14 @@ func describe_damaged_ranges_with_unfinished(conditions: String) -> Array[int]:
 					result[result.size() - 1] += 1
 
 			"?":
+				if not start_new:
+					last_entry_is_unfinished = true
 				break
 
 			_:
 				printerr("Unexpected Condition in match expression: ", condition)
 
-	return result
+	return [result, last_entry_is_unfinished]
 
 
 func pascals_triangle(a: int, b: int) -> int:
