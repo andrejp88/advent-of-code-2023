@@ -1,0 +1,99 @@
+[gd_scene load_steps=6 format=3 uid="uid://cdvl4behd8s14"]
+
+[ext_resource type="PackedScene" uid="uid://ij80ps8ylook" path="res://src/mouse_camera.tscn" id="1_k0dvc"]
+[ext_resource type="Script" path="res://src/day_14/day_14.gd" id="1_t6ci5"]
+[ext_resource type="Texture2D" uid="uid://fyreih8hbwns" path="res://src/day_14/sokoban_vector.svg" id="2_im1q4"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_v5m18"]
+texture = ExtResource("2_im1q4")
+margins = Vector2i(5, 5)
+separation = Vector2i(10, 10)
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+1:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_3kob4"]
+tile_size = Vector2i(64, 64)
+sources/0 = SubResource("TileSetAtlasSource_v5m18")
+
+[node name="Day14" type="Node2D"]
+script = ExtResource("1_t6ci5")
+
+[node name="MouseCamera" parent="." instance=ExtResource("1_k0dvc")]
+
+[node name="TileMap" type="TileMap" parent="."]
+tile_set = SubResource("TileSet_3kob4")
+format = 2
+layer_0/name = "Ground"
+layer_1/name = "Rocks"
+layer_1/tile_data = PackedInt32Array()
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Load:"
+
+[node name="LoadTestInputButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "test_input.txt"
+
+[node name="LoadInputButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "input.txt"
+
+[node name="GridContainer" type="GridContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+columns = 3
+
+[node name="Container" type="Control" parent="CanvasLayer/VBoxContainer/GridContainer"]
+layout_mode = 2
+
+[node name="RollNorthButton" type="Button" parent="CanvasLayer/VBoxContainer/GridContainer"]
+layout_mode = 2
+text = "↑"
+
+[node name="Container2" type="Control" parent="CanvasLayer/VBoxContainer/GridContainer"]
+layout_mode = 2
+
+[node name="RollWestButton" type="Button" parent="CanvasLayer/VBoxContainer/GridContainer"]
+layout_mode = 2
+text = "←"
+
+[node name="Container3" type="Control" parent="CanvasLayer/VBoxContainer/GridContainer"]
+layout_mode = 2
+
+[node name="RollEastButton" type="Button" parent="CanvasLayer/VBoxContainer/GridContainer"]
+layout_mode = 2
+text = "→"
+
+[node name="Container4" type="Control" parent="CanvasLayer/VBoxContainer/GridContainer"]
+layout_mode = 2
+
+[node name="RollSouthButton" type="Button" parent="CanvasLayer/VBoxContainer/GridContainer"]
+layout_mode = 2
+text = "↓"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Load On North Edge:"
+
+[node name="LoadOnNorthEdgeLabel" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Not Yet Calculated"
+
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadTestInputButton" to="." method="load_and_populate" binds= ["res://src/day_14/test_input.txt"]]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadInputButton" to="." method="load_and_populate" binds= ["res://src/day_14/input.txt"]]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/GridContainer/RollNorthButton" to="." method="tilt_platform_up"]
