@@ -201,15 +201,15 @@ func pascals_optimization(
 	var length_of_unknowns := index_of_first_beyond_range - first_unknown_index
 	var max_damaged_ranges := ceili(length_of_unknowns / 2.0)
 	var ranges_matched_so_far := damaged_range_description.size()
-	var remaining_ranges := row.range_sizes.slice(ranges_matched_so_far, ranges_matched_so_far + max_damaged_ranges)
+	var max_ranges_to_try := row.range_sizes.slice(ranges_matched_so_far, ranges_matched_so_far + max_damaged_ranges)
 
 	if should_print_debug:
 		print("%sRow has a clean batch of unknowns from %s to %s" % [indent, first_unknown_index, index_of_first_beyond_range])
 
 	var known_combinations := 0
 
-	for num_ranges_to_try: int in range(remaining_ranges.size(), -1, -1):
-		var ranges_to_try := remaining_ranges.slice(0, num_ranges_to_try)
+	for num_ranges_to_try: int in max_ranges_to_try.size() + 1:
+		var ranges_to_try := max_ranges_to_try.slice(0, num_ranges_to_try)
 		var sum_of_ranges: int = 0 if ranges_to_try.is_empty() else ranges_to_try.reduce(Util.sumi)
 
 		var number_of_arrangements := pascals_triangle(
@@ -221,11 +221,13 @@ func pascals_optimization(
 			print("%s%s ways to fill the batch with these range sizes: %s" % [indent, number_of_arrangements, ranges_to_try])
 
 		if number_of_arrangements == 0:
-			continue
+			if should_print_debug:
+				print("%sSkipping remaining sub-range attempts" % [indent])
+			break
 
-		var sample_success_conditions := fill_sample_conditions_from_range_sizes(row, ranges_to_try, index_of_first_beyond_range)
-
-		known_combinations += number_of_arrangements * calculate_possible_arrangements(Row.new(sample_success_conditions, row.range_sizes), should_print_debug, indent + "\t")
+		known_combinations += number_of_arrangements * calculate_possible_arrangements(
+			Row.new(row.conditions.substr(index_of_first_beyond_range), row.range_sizes.slice(ranges_matched_so_far + num_ranges_to_try)), should_print_debug, indent + "\t"
+		)
 
 	return known_combinations
 
