@@ -173,6 +173,10 @@ func test_calculate_possible_arrangements_part_2() -> void:
 	assert_eq(day.calculate_possible_arrangements(test_input_parsed_part_2[5]), 506250)
 	print("Time elapsed: %.3f" % [Time.get_unix_time_from_system() - start_time])
 
+	var fa := FileAccess.open("res://src/day_12/cpa_cache_test_calculate_possible_arrangements_part_2.json", FileAccess.WRITE)
+	fa.store_string(str(day.cpa_cache))
+	fa.close()
+
 
 func test_calculate_possible_arrangements_problematic_part_2_1() -> void:
 	var row := day.parse_row("???.????.?..????? 3,1,1,3")
