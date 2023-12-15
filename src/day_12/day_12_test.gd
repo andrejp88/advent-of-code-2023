@@ -63,10 +63,99 @@ func test_part_2_example() -> void:
 	assert_eq(day.part_2(input), 525_152)
 
 
+func test_part_2_real_st() -> void:
+	var fa := FileAccess.open("res://src/day_12/input.txt", FileAccess.READ)
+	var input := fa.get_as_text()
+	fa.close()
+
+	var overall_start_time := Time.get_unix_time_from_system()
+
+	var parsed := day.parse_input(input)
+	var part_2_total := 0
+
+	for row_idx: int in parsed.size():
+		var row_start_time := Time.get_unix_time_from_system()
+		var row := parsed[row_idx]
+		row.apply_part_2_twist()
+		var result := day.calculate_possible_arrangements(row)
+		part_2_total += result
+		var seconds_since_start := Time.get_unix_time_from_system() - overall_start_time
+		print(
+			"Row %4d finished with result %15d in %7.2fs, overall runtime = %02d:%02d:%02d, running total = %s" % [
+				row_idx + 1,
+				result,
+				Time.get_unix_time_from_system() - row_start_time,
+				floori(seconds_since_start / 60.0 / 60.0),
+				floori(fmod(seconds_since_start / 60.0, 60.0)),
+				floori(fmod(seconds_since_start, 60.0)),
+				part_2_total,
+			]
+		)
+
+		# Every now and then, clear the single-hit entries from the cache, otherwise we will run out of memory.
+		# The vast, vast, vast, majority are single-hit entries. Vast.
+		if row_idx % 20 == 19:
+			print("Optimizing caches")
+			day.optimize_caches()
+
+	print("Day 12, Part 2: ", part_2_total)
+	print("Time elapsed: %.3d" % [Time.get_unix_time_from_system() - overall_start_time])
+
+	#var fa_cpa_cache := FileAccess.open("res://src/day_12/cpa_cache_test_part_2_real_st_16_24.json", FileAccess.WRITE)
+	#var cpa_cache_representation := []
+	#for key: String in day.cpa_cache.keys():
+		#cpa_cache_representation.append({
+			#"row_representation": key,
+			#"hits": day.cpa_cache[key][1],
+			#"result": day.cpa_cache[key][0],
+		#})
+#
+	#cpa_cache_representation.sort_custom(
+		#func(entry_a: Dictionary, entry_b: Dictionary) -> bool:
+			#return entry_b["hits"] < entry_a["hits"]
+	#)
+	#fa_cpa_cache.store_string(str(cpa_cache_representation))
+	#fa_cpa_cache.close()
+#
+	#var fa_ddr_cache := FileAccess.open("res://src/day_12/ddr_cache_test_part_2_real_st_16_24.json", FileAccess.WRITE)
+	#var ddr_cache_representation := []
+	#for key: String in day.describe_damaged_ranges_cache.keys():
+		#ddr_cache_representation.append({
+			#"row_representation": key,
+			#"hits": day.describe_damaged_ranges_cache[key][1],
+			#"result": day.describe_damaged_ranges_cache[key][0],
+		#})
+#
+	#ddr_cache_representation.sort_custom(
+		#func(entry_a: Dictionary, entry_b: Dictionary) -> bool:
+			#return entry_b["hits"] < entry_a["hits"]
+	#)
+	#fa_ddr_cache.store_string(str(ddr_cache_representation))
+	#fa_ddr_cache.close()
+#
+	#var fa_ddrwu_cache := FileAccess.open("res://src/day_12/ddrwu_cache_test_part_2_real_st_16_24.json", FileAccess.WRITE)
+	#var ddrwu_cache_representation := []
+	#for key: String in day.describe_damaged_ranges_with_unfinished_cache.keys():
+		#ddrwu_cache_representation.append({
+			#"row_representation": key,
+			#"hits": day.describe_damaged_ranges_with_unfinished_cache[key][1],
+			#"result": day.describe_damaged_ranges_with_unfinished_cache[key][0],
+		#})
+#
+	#ddrwu_cache_representation.sort_custom(
+		#func(entry_a: Dictionary, entry_b: Dictionary) -> bool:
+			#return entry_b["hits"] < entry_a["hits"]
+	#)
+	#fa_ddrwu_cache.store_string(str(ddrwu_cache_representation))
+	#fa_ddrwu_cache.close()
+
+	pass_test("passed")
+
+
 # Seems to not work if it's a local variable
 var part_2_real_total := 0
 
-func test_part_2_real() -> void:
+func test_part_2_real_mt() -> void:
 	var fa := FileAccess.open("res://src/day_12/input.txt", FileAccess.READ)
 	var input := fa.get_as_text()
 	fa.close()
