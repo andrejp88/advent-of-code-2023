@@ -188,6 +188,16 @@ func test_calculate_possible_arrangements_problematic_part_2_1() -> void:
 	pass_test("passed")
 
 
+func test_calculate_possible_arrangements_problematic_part_2_row_1() -> void:
+	var row := day.parse_row("???????????#??? 5,2,1")
+	row.apply_part_2_twist()
+	var start_time := Time.get_unix_time_from_system()
+	var result := day.calculate_possible_arrangements(row)
+	print("Time elapsed: %.3f" % [Time.get_unix_time_from_system() - start_time])
+	print(result)
+	pass_test("passed")
+
+
 func test_calculate_possible_arrangements_problematic_part_2_2() -> void:
 	var row := day.parse_row("?#??????#???????? 12,1")
 	row.apply_part_2_twist()
