@@ -86,31 +86,31 @@ func calculate_possible_arrangements(row: Row, should_print_debug: bool = false,
 		return 0
 
 
-	# 5. Pascal's Optimization
-	#
-	# If the first unknown is part of a range surrounded by operational entries: .##..???.###...
-	#                                                                                 ^
-	# ... or is at the beginning: ??.##...##.
-	#                             ^
-	# ... or is at the end: ..##.#...???
-	#                                ^
-	# ...then we can figure out the number of valid combinations in this range and skip a bunch of
-	# recursive calls.
+	var nice_unknown_batch_regex := RegEx.new()
+	nice_unknown_batch_regex.compile(r"\.\?+\.|^\?+\.|\.\?+$")
+	#                                 ".???.", or "???." at the start, or ".???" at the end
+	var nice_unknown_batch_regex_result := nice_unknown_batch_regex.search_all(row.conditions)
+	var closest_to_middle_batch: RegExMatch = null
+
+	@warning_ignore("integer_division")
+	var index_of_middle := row.conditions.length() / 2
+
+	for batch_match: RegExMatch in nice_unknown_batch_regex_result:
+		if (
+			closest_to_middle_batch == null or
+			absi(index_of_middle - batch_match.get_start()) < absi(index_of_middle - closest_to_middle_batch.get_start())
+		):
+			closest_to_middle_batch = batch_match
+
+	if closest_to_middle_batch != null:
+		return pascals_optimization(row, closest_to_middle_batch, should_print_debug, indent + "\t")
+
+
 	var index_of_first_beyond_range := first_unknown_index
 	while row.conditions[index_of_first_beyond_range] == "?":
 		index_of_first_beyond_range += 1
 		if index_of_first_beyond_range == row.conditions.length():
 			break
-
-	if (
-		first_unknown_index == 0 or
-		row.conditions[first_unknown_index - 1] == "."
-	) and (
-		index_of_first_beyond_range >= row.conditions.length() or
-		row.conditions[index_of_first_beyond_range] == "."
-	):
-		return pascals_optimization(row, damaged_range_description, index_of_first_beyond_range, should_print_debug, indent)
-
 
 	if index_of_first_beyond_range - first_unknown_index >= 3: # I guess
 		return pascals_convenience(row, index_of_first_beyond_range, should_print_debug, indent)
@@ -192,42 +192,67 @@ func is_valid_arrangement_so_far(row: Row, should_print_debug: bool, indent: Str
 
 func pascals_optimization(
 	row: Row,
-	damaged_range_description: Array[int],
-	index_of_first_beyond_range: int,
+	closest_to_middle_batch: RegExMatch,
 	should_print_debug: bool,
 	indent: String
 ) -> int:
-	var first_unknown_index := row.conditions.find("?")
-	var length_of_unknowns := index_of_first_beyond_range - first_unknown_index
-	var max_damaged_ranges := ceili(length_of_unknowns / 2.0)
-	var ranges_matched_so_far := damaged_range_description.size()
-	var max_ranges_to_try := row.range_sizes.slice(ranges_matched_so_far, ranges_matched_so_far + max_damaged_ranges)
-
 	if should_print_debug:
-		print("%sRow has a clean batch of unknowns from %s to %s" % [indent, first_unknown_index, index_of_first_beyond_range])
+		print("%sRow has a clean batch of unknowns from %s to %s" % [indent, closest_to_middle_batch.get_start() + 1, closest_to_middle_batch.get_end() - 1])
 
 	var known_combinations := 0
+	var length_of_unknowns := closest_to_middle_batch.get_string().count("?")
 
-	for num_ranges_to_try: int in max_ranges_to_try.size() + 1:
-		var ranges_to_try := max_ranges_to_try.slice(0, num_ranges_to_try)
-		var sum_of_ranges: int = 0 if ranges_to_try.is_empty() else ranges_to_try.reduce(Util.sumi)
+	# For optimizing the loop
+	var did_left_ever_succeed := false
 
-		var number_of_arrangements := pascals_triangle(
-			num_ranges_to_try,
-			length_of_unknowns - sum_of_ranges - num_ranges_to_try + 1,
-		)
+	for num_ranges_to_try_left: int in row.range_sizes.size() + 1:
+		var ranges_left := row.range_sizes.slice(0, num_ranges_to_try_left)
 
-		if should_print_debug:
-			print("%s%s ways to fill the batch with these range sizes: %s" % [indent, number_of_arrangements, ranges_to_try])
+		for num_ranges_to_try_middle: int in row.range_sizes.size() + 1 - num_ranges_to_try_left:
+			var ranges_middle := row.range_sizes.slice(num_ranges_to_try_left, num_ranges_to_try_left + num_ranges_to_try_middle)
 
-		if number_of_arrangements == 0:
 			if should_print_debug:
-				print("%sSkipping remaining sub-range attempts" % [indent])
-			break
+				print("%sTrying these range sizes in the middle: %s" % [indent + "\t", ranges_middle])
 
-		known_combinations += number_of_arrangements * calculate_possible_arrangements(
-			Row.new(row.conditions.substr(index_of_first_beyond_range), row.range_sizes.slice(ranges_matched_so_far + num_ranges_to_try)), should_print_debug, indent + "\t"
-		)
+			var sum_of_ranges_middle: int = 0 if ranges_middle.is_empty() else ranges_middle.reduce(Util.sumi)
+
+			var middle_arrangements := pascals_triangle(
+				ranges_middle.size(),
+				length_of_unknowns - sum_of_ranges_middle - ranges_middle.size() + 1,
+			)
+
+			if should_print_debug:
+				print("%s%s ways to fill the middle batch with these range sizes: %s" % [indent + "\t", middle_arrangements, ranges_middle])
+
+			if middle_arrangements == 0:
+				if should_print_debug:
+					print("%sSkipping remaining middle sub-range attempts" % [indent + "\t"])
+				break
+
+			var ranges_right := row.range_sizes.slice(num_ranges_to_try_left + num_ranges_to_try_middle, row.range_sizes.size())
+
+			if should_print_debug:
+				print("%sTrying these range sizes on the left %s, middle %s, and right %s" % [indent + "\t", ranges_left, ranges_middle, ranges_right])
+
+			var left_arrangements := calculate_possible_arrangements(
+				Row.new(row.conditions.substr(0, closest_to_middle_batch.get_start()), ranges_left), should_print_debug, indent + "\t" + "\t"
+			)
+
+			if left_arrangements == 0:
+				if did_left_ever_succeed:
+					if should_print_debug:
+						print("%sLeft range has gotten too big and can't fit anymore. Skipping remaining attempts." % [indent + "\t"])
+					return known_combinations
+
+			else:
+				did_left_ever_succeed = true
+
+			var right_arrangements := calculate_possible_arrangements(
+				Row.new(row.conditions.substr(closest_to_middle_batch.get_end()), ranges_right), should_print_debug, indent + "\t" + "\t"
+			)
+
+			known_combinations += middle_arrangements * left_arrangements * right_arrangements
+
 
 	return known_combinations
 
