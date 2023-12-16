@@ -40,12 +40,15 @@ var size_y := 0
 
 var should_shine := false
 var cells_per_step := 1
-var step_duration := 0.01
+var step_duration := 0.0001
 var time_since_last_step := 0.0
 var next_light_stops: Array[Array] = []
 var already_visited_light_stops := {}
 
 signal done_with_iteration
+
+
+var hits: Array[Array] = []
 
 
 func _process(delta: float) -> void:
@@ -59,6 +62,8 @@ func _process(delta: float) -> void:
 			for stop: Array[Vector2i] in next_light_stops:
 				var pos: Vector2i = stop[0]
 				var dir: Vector2i = stop[1]
+
+				hits[pos.y][pos.x] += 1
 
 				var cell_data := tilemap.get_cell_tile_data(tilemap_layer_mirrors, pos)
 
@@ -453,6 +458,7 @@ func repopulate_tilemap(input: String) -> void:
 	$CanvasLayer/VBoxContainer/HBoxContainer2/ShineLightButton.text = "Let There Be Light"
 	$CanvasLayer/VBoxContainer/HBoxContainer2/ShineLightButton.disabled = false
 	tilemap.clear()
+	$HeatMap.clear()
 	next_light_stops.clear()
 	already_visited_light_stops.clear()
 
@@ -467,6 +473,11 @@ func repopulate_tilemap(input: String) -> void:
 
 	size_x = lines[0].length()
 	size_y = lines.size()
+
+	hits.resize(size_y)
+	for y in size_y:
+		hits[y].resize(size_x)
+		hits[y].fill(0)
 
 	for y: int in lines.size():
 		var line := lines[y]
@@ -543,8 +554,6 @@ func experiment_with_light() -> void:
 
 	$CanvasLayer/VBoxContainer/HBoxContainer2/ShineLightButton.disabled = true
 
-	var max_energized_cell_count := 0
-
 	for x: int in size_x:
 		var y_top := -1
 		var y_bottom := size_y
@@ -594,3 +603,21 @@ func experiment_with_light() -> void:
 	for label: Label in labels:
 		if int(label.text) > int($CanvasLayer/VBoxContainer/HBoxContainer3/MaxIlluminationLabel.text):
 			$CanvasLayer/VBoxContainer/HBoxContainer3/MaxIlluminationLabel.text = label.text
+
+
+func draw_heatmap() -> void:
+	var heatmap: TileMap = $HeatMap
+
+	var max_heat := 0
+	for y: int in hits.size():
+		for x: int in hits[y].size():
+			var heat: int = hits[y][x]
+			if heat > max_heat:
+				max_heat = heat
+
+
+	for y: int in hits.size():
+		for x: int in hits[y].size():
+			var heat: int = hits[y][x]
+			var heat_normalized := float(heat) / max_heat
+			heatmap.set_cell(0, Vector2i(x, y), 0, Vector2i(ceili(heat_normalized * 399), 0))
