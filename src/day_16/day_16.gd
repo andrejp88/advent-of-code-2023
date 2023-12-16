@@ -2,8 +2,9 @@ extends Node2D
 
 
 @onready var tilemap: TileMap = $TileMap
-const tilemap_layer_mirrors := 0
-const tilemap_layer_light := 1
+const tilemap_layer_highlight := 0
+const tilemap_layer_mirrors := 1
+const tilemap_layer_light := 2
 
 const tilemap_mirror_atlas_coords := Vector2i(0, 1)
 const tilemap_mirrow_nesw_alternative := 0
@@ -31,6 +32,11 @@ const tilemap_light_3_wne_alternative := 3
 
 const tilemap_light_4_atlas_coords := Vector2i(1, 1)
 
+const tilemap_highlight_atlas_coords := Vector2i(0, 2)
+const tilemap_blank_atlas_coords := Vector2i(-1, -1)
+
+var size_x := 0
+var size_y := 0
 
 var should_shine := false
 var cells_per_step := 1
@@ -38,6 +44,8 @@ var step_duration := 0.01
 var time_since_last_step := 0.0
 var next_light_stops: Array[Array] = []
 var already_visited_light_stops := {}
+
+signal done_with_iteration
 
 
 func _process(delta: float) -> void:
@@ -153,14 +161,21 @@ func _process(delta: float) -> void:
 			next_light_stops.clear()
 			next_light_stops.assign(next_light_stops_candidates.filter(
 				func(stop: Array) -> bool:
-					return tilemap.get_used_rect().has_point(stop[0]) and str(stop) not in already_visited_light_stops
+					return is_point_in_light_field(stop[0]) and str(stop) not in already_visited_light_stops
 			))
 
 
 		$CanvasLayer/VBoxContainer/HBoxContainer2/EnergizedCellsCountLabel.text = str(tilemap.get_used_cells(tilemap_layer_light).size())
 		if next_light_stops.is_empty():
 			$CanvasLayer/VBoxContainer/HBoxContainer2/ShineLightButton.text = "And There Was Light"
+			done_with_iteration.emit()
 
+
+func is_point_in_light_field(point: Vector2i) -> bool:
+	return (
+		point.x >= 0 and point.x < size_x and
+		point.y >= 0 and point.y < size_y
+	)
 
 func overlay_light(pos: Vector2i, desired_atlas_coords: Vector2i, desired_alternative: int) -> void:
 	var current_cell_data := tilemap.get_cell_tile_data(tilemap_layer_light, pos)
@@ -423,7 +438,6 @@ func overlay_light(pos: Vector2i, desired_atlas_coords: Vector2i, desired_altern
 									tilemap.set_cell(tilemap_layer_light, pos, 0, tilemap_light_4_atlas_coords)
 
 
-
 func load_and_repopulate_tilemap(path: String) -> void:
 	var fa := FileAccess.open(path, FileAccess.READ)
 	var input := fa.get_as_text()
@@ -433,6 +447,8 @@ func load_and_repopulate_tilemap(path: String) -> void:
 
 func repopulate_tilemap(input: String) -> void:
 
+	#($Labels/LabelsContainer/Label as Label).getover
+
 	$CanvasLayer/VBoxContainer/HBoxContainer2/EnergizedCellsCountLabel.text = "Not Yet Calculated"
 	$CanvasLayer/VBoxContainer/HBoxContainer2/ShineLightButton.text = "Let There Be Light"
 	$CanvasLayer/VBoxContainer/HBoxContainer2/ShineLightButton.disabled = false
@@ -440,7 +456,17 @@ func repopulate_tilemap(input: String) -> void:
 	next_light_stops.clear()
 	already_visited_light_stops.clear()
 
+	var labels_container := $Labels/LabelsContainer
+	$Labels.remove_child(labels_container)
+	labels_container.free()
+	labels_container = Node2D.new()
+	labels_container.name = "LabelsContainer"
+	$Labels.add_child(labels_container)
+
 	var lines := input.split("\n", false)
+
+	size_x = lines[0].length()
+	size_y = lines.size()
 
 	for y: int in lines.size():
 		var line := lines[y]
@@ -458,7 +484,113 @@ func repopulate_tilemap(input: String) -> void:
 					tilemap.set_cell(tilemap_layer_mirrors, Vector2i(x, y), 0, tilemap_splitter_atlas_coords, tilemap_splitter_h_alternative)
 
 
+	for x: int in size_x:
+		for y: int in [-1, size_y]:
+			var pos_label := Label.new()
+			pos_label.name = "Position(%d,%d)" % [x, y]
+			pos_label.theme = preload("res://src/monocraft_theme.tres")
+			pos_label.add_theme_font_size_override("font_size", 27)
+			pos_label.text = "%d,%d" % [x, y]
+			$Labels/LabelsContainer.add_child(pos_label)
+			set_label_center_global_position_to_tile(pos_label, Vector2i(x, y))
+
+			var energized_cell_count_label := Label.new()
+			energized_cell_count_label.name = "EnergizedCellCount(%d,%d)" % [x, y]
+			energized_cell_count_label.theme = preload("res://src/monocraft_theme.tres")
+			energized_cell_count_label.add_theme_font_size_override("font_size", 27)
+			energized_cell_count_label.text = "n/a"
+			$Labels/LabelsContainer.add_child(energized_cell_count_label)
+			set_label_center_global_position_to_tile(energized_cell_count_label, Vector2i(x, y - 1 if y == tilemap.get_used_rect().position.y - 1 else y + 1))
+
+
+	for y: int in size_y:
+		for x: int in [-1, size_x]:
+			var pos_label := Label.new()
+			pos_label.name = "Position(%d,%d)"
+			pos_label.theme = preload("res://src/monocraft_theme.tres")
+			pos_label.add_theme_font_size_override("font_size", 27)
+			pos_label.text = "%d,%d" % [x, y]
+			$Labels/LabelsContainer.add_child(pos_label)
+			set_label_center_global_position_to_tile(pos_label, Vector2i(x, y))
+
+			var energized_cell_count_label := Label.new()
+			energized_cell_count_label.name = "EnergizedCellCount(%d,%d)" % [x, y]
+			energized_cell_count_label.theme = preload("res://src/monocraft_theme.tres")
+			energized_cell_count_label.add_theme_font_size_override("font_size", 27)
+			energized_cell_count_label.text = "n/a"
+			$Labels/LabelsContainer.add_child(energized_cell_count_label)
+			set_label_center_global_position_to_tile(energized_cell_count_label, Vector2i(x - 1 if x == tilemap.get_used_rect().position.x - 1 else x + 1, y))
+
+
+func set_label_center_global_position_to_tile(label: Label, pos: Vector2i) -> void:
+	label.global_position = (
+		Vector2(tilemap.tile_set.tile_size) * Vector2(pos) +
+		Vector2(tilemap.tile_set.tile_size) / 2.0 -
+		label.size / 2.0
+	)
+
+
 func shine_light() -> void:
 	$CanvasLayer/VBoxContainer/HBoxContainer2/ShineLightButton.text = "Illuminating..."
 	$CanvasLayer/VBoxContainer/HBoxContainer2/ShineLightButton.disabled = true
+
+	tilemap.clear_layer(tilemap_layer_light)
+
 	next_light_stops = [[Vector2i.ZERO, Vector2i.RIGHT]]
+
+
+func experiment_with_light() -> void:
+
+	$CanvasLayer/VBoxContainer/HBoxContainer2/ShineLightButton.disabled = true
+
+	var max_energized_cell_count := 0
+
+	for x: int in size_x:
+		var y_top := -1
+		var y_bottom := size_y
+
+		tilemap.set_cell(tilemap_layer_highlight, Vector2i(x, y_top), 0, tilemap_highlight_atlas_coords)
+		next_light_stops.clear()
+		already_visited_light_stops.clear()
+		tilemap.clear_layer(tilemap_layer_light)
+		next_light_stops = [[Vector2i(x, y_top + 1), Vector2i.DOWN]]
+		await done_with_iteration
+		$Labels/LabelsContainer.get_node("EnergizedCellCount(%s,%s)" % [x, y_top]).text = str(tilemap.get_used_cells(tilemap_layer_light).size())
+		tilemap.set_cell(tilemap_layer_highlight, Vector2i(x, y_top), -1, tilemap_blank_atlas_coords)
+
+		tilemap.set_cell(tilemap_layer_highlight, Vector2i(x, y_bottom), 0, tilemap_highlight_atlas_coords)
+		next_light_stops.clear()
+		already_visited_light_stops.clear()
+		tilemap.clear_layer(tilemap_layer_light)
+		next_light_stops = [[Vector2i(x, y_bottom - 1), Vector2i.UP]]
+		await done_with_iteration
+		$Labels/LabelsContainer.get_node("EnergizedCellCount(%s,%s)" % [x, y_bottom]).text = str(tilemap.get_used_cells(tilemap_layer_light).size())
+		tilemap.set_cell(tilemap_layer_highlight, Vector2i(x, y_bottom), -1, tilemap_blank_atlas_coords)
+
+
+	for y: int in size_y:
+		var x_left := -1
+		var x_right := size_x
+
+		tilemap.set_cell(tilemap_layer_highlight, Vector2i(x_left, y), 0, tilemap_highlight_atlas_coords)
+		next_light_stops.clear()
+		already_visited_light_stops.clear()
+		tilemap.clear_layer(tilemap_layer_light)
+		next_light_stops = [[Vector2i(x_left + 1, y), Vector2i.RIGHT]]
+		await done_with_iteration
+		$Labels/LabelsContainer.get_node("EnergizedCellCount(%s,%s)" % [x_left, y]).text = str(tilemap.get_used_cells(tilemap_layer_light).size())
+		tilemap.set_cell(tilemap_layer_highlight, Vector2i(x_left, y), 0, tilemap_blank_atlas_coords)
+
+		tilemap.set_cell(tilemap_layer_highlight, Vector2i(x_right, y), 0, tilemap_highlight_atlas_coords)
+		next_light_stops.clear()
+		already_visited_light_stops.clear()
+		tilemap.clear_layer(tilemap_layer_light)
+		next_light_stops = [[Vector2i(x_right - 1, y), Vector2i.LEFT]]
+		await done_with_iteration
+		$Labels/LabelsContainer.get_node("EnergizedCellCount(%s,%s)" % [x_right, y]).text = str(tilemap.get_used_cells(tilemap_layer_light).size())
+		tilemap.set_cell(tilemap_layer_highlight, Vector2i(x_right, y), 0, tilemap_blank_atlas_coords)
+
+	var labels := $Labels/LabelsContainer.find_children("EnergizedCellCount(*,*)", "Label", false, false)
+	for label: Label in labels:
+		if int(label.text) > int($CanvasLayer/VBoxContainer/HBoxContainer3/MaxIlluminationLabel.text):
+			$CanvasLayer/VBoxContainer/HBoxContainer3/MaxIlluminationLabel.text = label.text

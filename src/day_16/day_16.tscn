@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://ckqcoemteyvnb"]
+[gd_scene load_steps=7 format=3 uid="uid://ckqcoemteyvnb"]
 
 [ext_resource type="PackedScene" uid="uid://ij80ps8ylook" path="res://src/mouse_camera.tscn" id="1_3ng5v"]
 [ext_resource type="Script" path="res://src/day_16/day_16.gd" id="1_gvq3r"]
 [ext_resource type="Texture2D" uid="uid://c1oihdua0xyj8" path="res://src/day_16/tilemap.svg" id="3_5dlk5"]
+[ext_resource type="Theme" uid="uid://dwcsl72g2ktdp" path="res://src/monocraft_theme.tres" id="3_738jl"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_5xr1q"]
 texture = ExtResource("3_5dlk5")
@@ -37,6 +38,7 @@ texture_region_size = Vector2i(128, 128)
 2:1/3 = 3
 2:1/3/flip_v = true
 2:1/3/transpose = true
+0:2/0 = 0
 
 [sub_resource type="TileSet" id="TileSet_58n7l"]
 tile_size = Vector2i(128, 128)
@@ -47,12 +49,25 @@ script = ExtResource("1_gvq3r")
 
 [node name="MouseCamera" parent="." instance=ExtResource("1_3ng5v")]
 
+[node name="Labels" type="Node2D" parent="."]
+
+[node name="LabelsContainer" type="Node2D" parent="Labels"]
+
+[node name="Label" type="Label" parent="Labels/LabelsContainer"]
+offset_right = 40.0
+offset_bottom = 23.0
+theme = ExtResource("3_738jl")
+theme_override_font_sizes/font_size = 36
+text = "123"
+
 [node name="TileMap" type="TileMap" parent="."]
 tile_set = SubResource("TileSet_58n7l")
 format = 2
-layer_0/name = "Mirrors"
-layer_1/name = "Light"
+layer_0/name = "Highlight"
+layer_1/name = "Mirrors"
 layer_1/tile_data = PackedInt32Array()
+layer_2/name = "Light"
+layer_2/tile_data = PackedInt32Array()
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -90,6 +105,22 @@ text = "Energized Cells:"
 layout_mode = 2
 text = "Not Yet Calculated"
 
+[node name="HBoxContainer3" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ExperimentWithLightButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "Experiment With Light"
+
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "Max Illumination:"
+
+[node name="MaxIlluminationLabel" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "Not Yet Calculated"
+
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadTestInputButton" to="." method="load_and_repopulate_tilemap" binds= ["res://src/day_16/test_input.txt"]]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/LoadRealInputButton" to="." method="load_and_repopulate_tilemap" binds= ["res://src/day_16/input.txt"]]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/ShineLightButton" to="." method="shine_light"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer3/ExperimentWithLightButton" to="." method="experiment_with_light"]
