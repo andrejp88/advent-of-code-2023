@@ -92,12 +92,6 @@ func test_part_2_real_st() -> void:
 			]
 		)
 
-		# Every now and then, clear the single-hit entries from the cache, otherwise we will run out of memory.
-		# The vast, vast, vast, majority are single-hit entries. Vast.
-		if row_idx % 20 == 19:
-			print("Optimizing caches")
-			day.optimize_caches()
-
 	print("Day 12, Part 2: ", part_2_total)
 	print("Time elapsed: %.3d" % [Time.get_unix_time_from_system() - overall_start_time])
 

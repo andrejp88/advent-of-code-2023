@@ -28,6 +28,31 @@ class Row:
 		]
 
 
+class Cache:
+	var contents := {}
+
+	func put(key: String, value: Variant) -> void:
+		contents[key] = [value, 1]
+
+		# Every now and then, clear the single-hit entries from the cache, otherwise we will run out of memory.
+		# The vast, vast, vast, majority are single-hit entries. Vast.
+		if contents.size() > 1_000_000: # I guess
+			optimize()
+
+
+	func gett(key: String) -> Variant:
+		contents[key][1] += 1
+		return contents[key][0]
+
+	func contains(key: String) -> bool:
+		return key in contents
+
+	func optimize() -> void:
+		for key: String in contents.keys():
+			if contents[key][1] == 1:
+				contents.erase(key)
+
+
 func part_1(input: String) -> int:
 	var parsed := parse_input(input)
 	var result: int = parsed.map(calculate_possible_arrangements).reduce(Util.sumi)
@@ -67,29 +92,14 @@ func parse_row(row: String) -> Row:
 	return Row.new(conditions, range_sizes)
 
 
-func optimize_caches() -> void:
-	for key: String in cpa_cache.keys():
-		if cpa_cache[key][1] == 1:
-			cpa_cache.erase(key)
-
-	for key: String in describe_damaged_ranges_cache.keys():
-		if describe_damaged_ranges_cache[key][1] == 1:
-			describe_damaged_ranges_cache.erase(key)
-
-	for key: String in describe_damaged_ranges_with_unfinished_cache.keys():
-		if describe_damaged_ranges_with_unfinished_cache[key][1] == 1:
-			describe_damaged_ranges_with_unfinished_cache.erase(key)
-
-
-# Only cache the more time consuming computations to save memory
-var cpa_cache := {}
+var cpa_cache := Cache.new()
 
 func calculate_possible_arrangements(row: Row, should_print_debug: bool = false, indent: String = "") -> int:
 
+	# Only cache the more time consuming computations to save memory. The quick/early stuff doesn't get the cache treatment.
 	var row_string := str(row).lstrip(".").rstrip(".")
-	if row_string in cpa_cache:
-		cpa_cache[row_string][1] += 1
-		return cpa_cache[row_string][0]
+	if cpa_cache.contains(row_string):
+		return cpa_cache.gett(row_string)
 
 
 	if should_print_debug:
@@ -128,7 +138,7 @@ func calculate_possible_arrangements(row: Row, should_print_debug: bool = false,
 
 	if closest_to_middle_batch != null:
 		var pascals_optimization_result := pascals_optimization(row, closest_to_middle_batch, should_print_debug, indent + "\t")
-		cpa_cache[row_string] = [pascals_optimization_result, 1]
+		cpa_cache.put(row_string, pascals_optimization_result)
 		return pascals_optimization_result
 
 
@@ -140,13 +150,13 @@ func calculate_possible_arrangements(row: Row, should_print_debug: bool = false,
 
 	if index_of_first_beyond_range - first_unknown_index >= 3: # I guess
 		var pascals_convenience_result := pascals_convenience(row, index_of_first_beyond_range, should_print_debug, indent)
-		cpa_cache[row_string] = [pascals_convenience_result, 1]
+		cpa_cache.put(row_string, pascals_convenience_result)
 		return pascals_convenience_result
 
 
 	# 6. Otherwise, there are still unknowns left so check all possible sub-arrangements
 	var search_result := search_for_solutions(row, should_print_debug, indent + "\t")
-	cpa_cache[row_string] = [search_result, 1]
+	cpa_cache.put(row_string, search_result)
 	return search_result
 
 
@@ -377,20 +387,13 @@ func search_for_solutions(row: Row, should_print_debug: bool, indent: String) ->
 	return num_possible_sub_arrangements
 
 
-var describe_damaged_ranges_unique_calls := 0
-var describe_damaged_ranges_total_calls := 0
-var describe_damaged_ranges_cache := {}
+var describe_damaged_ranges_cache := Cache.new()
 
 func describe_damaged_ranges(conditions: String) -> Array[int]:
 
-	describe_damaged_ranges_total_calls += 1
-
 	var conditions_stripped := conditions.lstrip(".").rstrip(".")
-	if conditions_stripped in describe_damaged_ranges_cache:
-		describe_damaged_ranges_cache[conditions_stripped][1] += 1
-		return describe_damaged_ranges_cache[conditions_stripped][0]
-
-	describe_damaged_ranges_unique_calls += 1
+	if describe_damaged_ranges_cache.contains(conditions_stripped):
+		return describe_damaged_ranges_cache.gett(conditions_stripped)
 
 	var result: Array[int] = []
 	var start_new := true
@@ -416,25 +419,18 @@ func describe_damaged_ranges(conditions: String) -> Array[int]:
 			_:
 				printerr("Unexpected Condition in match expression: ", condition)
 
-	describe_damaged_ranges_cache[conditions_stripped] = [result, 1]
+	describe_damaged_ranges_cache.put(conditions_stripped, result)
 
 	return result
 
 
-var describe_damaged_ranges_with_unfinished_unique_calls := 0
-var describe_damaged_ranges_with_unfinished_total_calls := 0
-var describe_damaged_ranges_with_unfinished_cache := {}
+var describe_damaged_ranges_with_unfinished_cache := Cache.new()
 
 func describe_damaged_ranges_with_unfinished(conditions: String) -> Array:
 
-	describe_damaged_ranges_with_unfinished_total_calls += 1
-
 	var conditions_stripped := conditions.lstrip(".").rstrip(".")
-	if conditions_stripped in describe_damaged_ranges_with_unfinished_cache:
-		describe_damaged_ranges_with_unfinished_cache[conditions_stripped][1] += 1
-		return describe_damaged_ranges_with_unfinished_cache[conditions_stripped][0]
-
-	describe_damaged_ranges_with_unfinished_unique_calls += 1
+	if describe_damaged_ranges_with_unfinished_cache.contains(conditions_stripped):
+		describe_damaged_ranges_with_unfinished_cache.gett(conditions_stripped)
 
 	var result: Array[int] = []
 	var start_new := true
@@ -474,7 +470,7 @@ func describe_damaged_ranges_with_unfinished(conditions: String) -> Array:
 	if last_entry_max_possible_size == 0 and result.size() > 0:
 		last_entry_max_possible_size = result[result.size() - 1]
 
-	describe_damaged_ranges_with_unfinished_cache[conditions_stripped] = [[result, last_entry_max_possible_size], 1]
+	describe_damaged_ranges_with_unfinished_cache.put(conditions_stripped, [result, last_entry_max_possible_size])
 
 	return [result, last_entry_max_possible_size]
 
