@@ -33,20 +33,24 @@ func find_shortest_path_a_star_iterative_fixed(
 	world: Array[Array],
 	start: Vector2i,
 	end: Vector2i,
+	heuristic: Callable,
+	min_before_turn: int,
+	max_before_turn: int = world.size(),
 	tree: SceneTree = null,
 	draw_path_interval: int = 100,
 ) -> Array[Vector2i]:
+
+	assert(min_before_turn < max_before_turn)
 
 	var world_rect := Rect2i(0, 0, world[0].size(), world.size())
 	var open_set: Array = [[start, []]]
 	var came_from := {}
 	var g_score := { [start, []]: 0 }
-	var f_score := { [start, []]: heuristic(start, end) }
+	var f_score := { [start, []]: heuristic.call(start, end) }
 
 	var iterations_since_draw_path := 0
 
 	while not open_set.is_empty():
-
 		var current: Array
 		var current_f_score := 2 ** 32
 
@@ -61,13 +65,25 @@ func find_shortest_path_a_star_iterative_fixed(
 		var current_recent_directions_travelled: Array[Vector2i] = []
 		current_recent_directions_travelled.assign(current[1])
 
-		if current_pos == Vector2i(11, 11):
+		var allowed_directions: Array[Vector2i] = []
+		var initial_consecutive_entries := count_initial_consecutive_entries(current_recent_directions_travelled)
+
+		if current_recent_directions_travelled.size() == 0:
+			# Special case: top-left, no history
+			assert(current_pos == Vector2i(0, 0))
+			allowed_directions.append_array([Vector2i.RIGHT, Vector2i.DOWN])
+
+		else:
+			if initial_consecutive_entries >= min_before_turn:
+				var rotated_left := Vector2i(Vector2(current_recent_directions_travelled[0]).rotated(-PI / 2))
+				var rotated_right := Vector2i(Vector2(current_recent_directions_travelled[0]).rotated(PI / 2))
+				allowed_directions.append(rotated_left)
+				allowed_directions.append(rotated_right)
+
+			if initial_consecutive_entries < max_before_turn:
+				allowed_directions.append(current_recent_directions_travelled[0])
+
 			pass
-
-		var direction_to_avoid := Vector2i.ZERO
-
-		if current_recent_directions_travelled.size() >= 3 and has_only_one_unique_value(current_recent_directions_travelled):
-			direction_to_avoid = current_recent_directions_travelled[0]
 
 		var current_path := reconstruct_path(came_from, current_pos, current_recent_directions_travelled)
 
@@ -80,14 +96,15 @@ func find_shortest_path_a_star_iterative_fixed(
 				await tree.process_frame
 
 		if current_pos == end:
+			print(current_path)
 			draw_path.emit(current_path, open_set.size())
 			return current_path
 
-		for direction: Vector2i in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+		for direction: Vector2i in allowed_directions:
 			var neighbour_pos := current_pos + direction
 			var neighbour_recent_directions_travelled := current_recent_directions_travelled.duplicate()
 
-			if neighbour_recent_directions_travelled.size() == 3:
+			if neighbour_recent_directions_travelled.size() == max_before_turn:
 				neighbour_recent_directions_travelled.pop_back()
 
 			neighbour_recent_directions_travelled.push_front(direction)
@@ -97,28 +114,19 @@ func find_shortest_path_a_star_iterative_fixed(
 			if not world_rect.has_point(neighbour_pos):
 				continue
 
-			# If this neighbour would mean either going too far in one direction *or* reversing, ignore this neighbour.
-			if (
-				direction == direction_to_avoid or
-				(current_recent_directions_travelled.size() > 0 and direction == current_recent_directions_travelled[0] * -1)
-			):
-				continue
-
 			var tentative_g_score: int = g_score.get(current, 2 ** 32) + world[neighbour_pos.y][neighbour_pos.x]
 
 			if tentative_g_score < g_score.get(neighbour, 2 ** 32):
 				came_from[neighbour] = current
 				g_score[neighbour] = tentative_g_score
-				f_score[neighbour] = tentative_g_score + heuristic(neighbour_pos, end)
+				f_score[neighbour] = tentative_g_score + heuristic.call(neighbour_pos, end)
 
 				if neighbour not in open_set:
 					open_set.push_back(neighbour)
 
+
+	print("failed")
 	return []
-
-
-func heuristic(start: Vector2i, end: Vector2i) -> int:
-	return absi(end.x - start.x) + absi(end.y - start.y)
 
 
 func reconstruct_path(came_from: Dictionary, end: Vector2i, recent_directions_travelled: Array[Vector2i]) -> Array[Vector2i]:
@@ -143,6 +151,23 @@ func has_only_one_unique_value(arr: Array) -> bool:
 			return false
 
 	return true
+
+
+func count_initial_consecutive_entries(arr: Array) -> int:
+	if arr.size() == 0:
+		return 0
+
+	var first: Variant = arr[0]
+
+	var count := 1
+
+	for i: int in range(1, arr.size()):
+		if arr[i] != first:
+			return false
+
+		count += 1
+
+	return count
 
 
 func calculate_path_cost(world: Array[Array], path: Array[Vector2i]) -> int:

@@ -68,5 +68,5 @@ func test_parse_input() -> void:
 
 
 func test_find_shortest_path() -> void:
-	var best_path := await day.find_shortest_path_a_star_iterative_fixed(parsed_test_input, Vector2i(0, 0), Vector2i(12, 12))
+	var best_path := await day.find_shortest_path_a_star_iterative_fixed(parsed_test_input, Vector2i(0, 0), Vector2i(12, 12), 3, 999_999)
 	assert_eq(day.calculate_path_cost(parsed_test_input, best_path), 102)

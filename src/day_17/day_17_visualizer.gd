@@ -29,7 +29,7 @@ func repopulate_tilemap(input: String) -> void:
 			tilemap.set_cell(0, Vector2i(x, y), 0, Vector2i(value - 1, 0))
 
 
-func _on_find_best_path_button_pressed() -> void:
+func _on_find_best_path_part_1_button_pressed() -> void:
 	var tilemap: TileMap = $TileMap
 	var rect := tilemap.get_used_rect()
 	var size := rect.size + Vector2i(-1, -1)
@@ -39,8 +39,31 @@ func _on_find_best_path_button_pressed() -> void:
 		parsed,
 		Vector2i.ZERO,
 		destination,
+		func(position: Vector2i, end: Vector2i) -> int:
+			return absi(end.x - position.x) + absi(end.y - position.y),
+		0,
+		3,
 		get_tree(),
-		100,
+		1,
+	)
+
+
+func _on_find_best_path_part_2_button_pressed() -> void:
+	var tilemap: TileMap = $TileMap
+	var rect := tilemap.get_used_rect()
+	var size := rect.size + Vector2i(-1, -1)
+	var destination := size
+
+	day17.find_shortest_path_a_star_iterative_fixed(
+		parsed,
+		Vector2i.ZERO,
+		destination,
+		func(position: Vector2i, end: Vector2i) -> int:
+			return 0,
+		4,
+		10,
+		get_tree(),
+		1,
 	)
 
 

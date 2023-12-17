@@ -54,9 +54,13 @@ text = "input.txt"
 [node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
 layout_mode = 2
 
-[node name="FindBestPathButton" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+[node name="FindBestPathPart1Button" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
-text = "Find Best Path"
+text = "Find Best Path Part 1"
+
+[node name="FindBestPathPart2Button" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Find Best Path Part 2"
 
 [node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
@@ -77,4 +81,5 @@ layout_mode = 2
 
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/Button" to="." method="load_and_repopulate" binds= ["res://src/day_17/test_input.txt"]]
 [connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/Button2" to="." method="load_and_repopulate" binds= ["res://src/day_17/input.txt"]]
-[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/FindBestPathButton" to="." method="_on_find_best_path_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/FindBestPathPart1Button" to="." method="_on_find_best_path_part_1_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/FindBestPathPart2Button" to="." method="_on_find_best_path_part_2_button_pressed"]
