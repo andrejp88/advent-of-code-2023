@@ -80,7 +80,7 @@ func flood_fill_center() -> void:
 	var flood_fill_queue: Array[Vector2i] = [Vector2i(flood_source_x, flood_source_y)]
 
 	while not flood_fill_queue.is_empty():
-		var to_fill: Vector2i = flood_fill_queue.pop_back()
+		var to_fill: Vector2i = flood_fill_queue.pop_front()
 
 		tilemap.set_cell(0, to_fill, 0, Vector2i(2, 1))
 
