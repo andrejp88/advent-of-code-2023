@@ -163,7 +163,7 @@ func count_initial_consecutive_entries(arr: Array) -> int:
 
 	for i: int in range(1, arr.size()):
 		if arr[i] != first:
-			return false
+			return count
 
 		count += 1
 

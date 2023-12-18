@@ -44,7 +44,7 @@ func _on_find_best_path_part_1_button_pressed() -> void:
 		0,
 		3,
 		get_tree(),
-		1,
+		100,
 	)
 
 
@@ -59,11 +59,11 @@ func _on_find_best_path_part_2_button_pressed() -> void:
 		Vector2i.ZERO,
 		destination,
 		func(position: Vector2i, end: Vector2i) -> int:
-			return 0,
+			return absi(end.x - position.x) + absi(end.y - position.y),
 		4,
 		10,
 		get_tree(),
-		1,
+		100,
 	)
 
 
