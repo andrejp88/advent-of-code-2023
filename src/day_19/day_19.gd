@@ -113,3 +113,53 @@ class WorkflowProcessor:
 					printerr("Unknown rel in workflow: ", workflow)
 
 		return workflow[workflow.size() - 1]
+
+
+func get_edges_in(workflows: Dictionary, name: String) -> Dictionary:
+
+	var result := {}
+
+	for workflow_name: String in workflows.keys():
+		var workflow_conditions: Array = workflows[workflow_name]
+
+		var winning_combinations: Array[Array] = []
+
+		for condition_idx: int in workflow_conditions.size() - 1:
+			var condition: Dictionary = workflow_conditions[condition_idx]
+
+			if condition["next"] == name:
+				var conditions_to_fail := workflow_conditions.slice(0, condition_idx)
+				var condition_to_succeed := condition.duplicate()
+				condition_to_succeed.erase("next")
+
+				winning_combinations.append(conditions_to_fail.map(invert_condition) + [condition_to_succeed])
+
+		if workflow_conditions[workflow_conditions.size() - 1] == name:
+			var conditions_to_fail := workflow_conditions.slice(0, workflow_conditions.size() - 1)
+			winning_combinations.append(conditions_to_fail.map(invert_condition))
+
+		if not winning_combinations.is_empty():
+			result[workflow_name] = winning_combinations
+
+	return result
+
+
+func invert_workflows_graph(workflows: Dictionary) -> Dictionary:
+
+	var nodes_with_inputs := ["A", "R"] + workflows.keys()
+	nodes_with_inputs.erase("in")
+
+	var result := {}
+
+	for node: String in nodes_with_inputs:
+		result[node] = get_edges_in(workflows, node)
+
+	return result
+
+
+func invert_condition(condition: Dictionary) -> Dictionary:
+	return {
+		"cat": condition["cat"],
+		"rel": "<" if condition["rel"] == ">" else ">",
+		"ref": condition["ref"] + 1 if condition["rel"] == ">" else condition["ref"] - 1,
+	}
