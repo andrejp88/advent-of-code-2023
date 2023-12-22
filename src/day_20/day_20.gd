@@ -41,6 +41,9 @@ func part_2(input: String) -> int:
 
 	var button_presses := 0
 
+	var periods := {}
+	var periods_found := {}
+
 	while true:
 		button_presses += 1
 		var pulses_to_send: Array[Dictionary] = [{ "type": LOW, "from": "button", "to": "broadcaster" }]
@@ -56,8 +59,28 @@ func part_2(input: String) -> int:
 			var next_pulses := send_pulse(network, current_pulse["type"], current_pulse["from"], current_pulse["to"])
 			pulses_to_send.append_array(next_pulses)
 
-		if button_presses % 10_000 == 0:
-			print(button_presses)
+		for module_name: String in network.keys():
+			if module_name in ["button", "broadcaster"]:
+				continue
+
+			if module_name in periods:
+				continue
+
+			var state := false
+			if network[module_name]["type"] == "%":
+				state = network[module_name]["state"]
+			else:
+				assert(network[module_name]["type"] == "&")
+				state = network[module_name]["state"].values().all(func(e: int) -> bool: return e == HIGH)
+
+			if state:
+				periods[module_name] = button_presses
+				var missing: Array[String] = []
+				missing.assign(network.keys().filter(func(key: String) -> bool: return key not in periods and key not in ["button", "broadcaster", "ns"]))
+				print("Found %s out of %s periods: %s                missing: %s" % [periods.size(), network.size() - 3, periods, missing])
+
+		if periods.size() == network.size() - 3: # sans button, broadcaster, and ns
+			return periods.values().reduce(Util.producti)
 
 
 	return -1
@@ -198,6 +221,8 @@ func stringify_network_state(network: Dictionary) -> String:
 	for module_name: String in network.keys():
 		var module: Dictionary = network[module_name]
 		if module["type"] == "%":
-			pieces.append("%s:%s" % [module_name, 1 if module["state"] else 0])
+			pieces.append("%s%s" % [module_name, "█" if module["state"] else " "])
+		elif module["type"] == "&":
+			pieces.append("%s%s" % [module_name, "█" if module["state"].values().all(func(e: int) -> bool: return e == HIGH) else " "])
 
-	return ",".join(pieces)
+	return "".join(pieces)
