@@ -37,7 +37,30 @@ func part_1(input: String) -> int:
 
 
 func part_2(input: String) -> int:
-	return 0
+	var network := parse_input(input)
+
+	var button_presses := 0
+
+	while true:
+		button_presses += 1
+		var pulses_to_send: Array[Dictionary] = [{ "type": LOW, "from": "button", "to": "broadcaster" }]
+
+		while not pulses_to_send.is_empty():
+			var current_pulse: Dictionary = pulses_to_send.pop_front()
+
+			if current_pulse["to"] not in network.keys():
+				if current_pulse["to"] == "rx" and current_pulse["type"] == LOW:
+					return button_presses
+				continue
+
+			var next_pulses := send_pulse(network, current_pulse["type"], current_pulse["from"], current_pulse["to"])
+			pulses_to_send.append_array(next_pulses)
+
+		if button_presses % 10_000 == 0:
+			print(button_presses)
+
+
+	return -1
 
 
 func parse_input(input: String) -> Dictionary:
