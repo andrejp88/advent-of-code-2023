@@ -41,8 +41,7 @@ func part_2(input: String) -> int:
 
 	var button_presses := 0
 
-	var periods := {}
-	var periods_found := {}
+	var flip_flop_periods := {}
 
 	while true:
 		button_presses += 1
@@ -63,27 +62,49 @@ func part_2(input: String) -> int:
 			if module_name in ["button", "broadcaster"]:
 				continue
 
-			if module_name in periods:
+			if module_name in flip_flop_periods:
 				continue
 
-			var state := false
-			if network[module_name]["type"] == "%":
-				state = network[module_name]["state"]
-			else:
-				assert(network[module_name]["type"] == "&")
-				state = network[module_name]["state"].values().all(func(e: int) -> bool: return e == HIGH)
-
-			if state:
-				periods[module_name] = button_presses
+			if network[module_name]["type"] == "%" and network[module_name]["state"]:
+				flip_flop_periods[module_name] = button_presses
 				var missing: Array[String] = []
-				missing.assign(network.keys().filter(func(key: String) -> bool: return key not in periods and key not in ["button", "broadcaster", "ns"]))
-				print("Found %s out of %s periods: %s                missing: %s" % [periods.size(), network.size() - 3, periods, missing])
+				missing.assign(network.keys().filter(func(key: String) -> bool: return key not in flip_flop_periods and key not in ["button", "broadcaster", "ns"]))
+				print("Found %s out of %s flip_flop_periods: %s                missing: %s" % [flip_flop_periods.size(), network.size() - 3, flip_flop_periods, missing])
 
-		if periods.size() == network.size() - 3: # sans button, broadcaster, and ns
-			return periods.values().reduce(Util.producti)
+		if flip_flop_periods.size() == network.keys().filter(func(module_name: String) -> bool: return network[module_name]["type"] == "%").size():
+			return get_period(network, flip_flop_periods, "ns")
 
 
 	return -1
+
+
+func get_period(network: Dictionary, flip_flop_periods: Dictionary, module_name: String, already_considered: Array[String] = [], indent: String = "") -> int:
+	print("%sGetting period of %s" % [indent, module_name])
+	if module_name in already_considered:
+		return 1
+
+	already_considered.append(module_name)
+
+	var module: Dictionary = network[module_name]
+	var result := -1
+	if module["type"] == "%":
+		print("%sType is %% so fetching result from flip_flop_periods" % [indent])
+		result = flip_flop_periods[module_name]
+
+	else:
+		print("%sType is & so performing a recursive call" % [indent])
+		var recursive_results: Array[int] = []
+		result = 1
+		for in_module_name: String in module["in"]:
+			recursive_results.append(get_period(network, flip_flop_periods, in_module_name, already_considered, indent + "\t"))
+
+		result = recursive_results.reduce(Util.producti)
+		if module_name == "ns":
+			print(recursive_results)
+
+	print("%sPeriod of %s is %s" % [indent, module_name, result])
+
+	return result
 
 
 func parse_input(input: String) -> Dictionary:
