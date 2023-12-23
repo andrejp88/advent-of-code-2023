@@ -3,9 +3,18 @@ class_name Day21
 const Util := preload("res://src/util.gd")
 
 
+signal part_1_completed(num_gardens_visited: int)
+signal pre_step_signal(current_pos: Vector2i, next_positions: Array[Vector2i], gardens_visited: Array[Vector2i])
+signal dummy_signal
+
+
 func part_1(input: String, num_steps: int) -> int:
 	var grid: Array[String] = []
 	grid.assign(Array(input.split("\n", false)))
+	return await search_part_1(grid, num_steps)
+
+
+func search_part_1(grid: Array[String], num_steps: int, pre_step_signal_to_await: Signal = dummy_signal, iterations_per_await: int = 1) -> int:
 	var grid_rect := Rect2i(Vector2i.ZERO, Vector2i(grid[0].length(), grid.size()))
 
 	var start_pos := Vector2i(-1, -1)
@@ -21,8 +30,10 @@ func part_1(input: String, num_steps: int) -> int:
 	var gardens_visited: Array[Vector2i] = []
 	var steps_already_considered: Dictionary = {}
 
+	var iterations_since_await := 0
+
 	while not next_steps.is_empty():
-		var current_step: Dictionary = next_steps.pop_front()
+		var current_step: Dictionary = next_steps.pop_back()
 		var current_pos: Vector2i = current_step["pos"]
 		var steps_remaining: int = current_step["steps_remaining"]
 		var current_step_descriptor := "%s %s" % [current_pos, steps_remaining]
@@ -31,6 +42,19 @@ func part_1(input: String, num_steps: int) -> int:
 			continue
 
 		steps_already_considered[current_step_descriptor] = true
+
+		var next_positions: Array[Vector2i] = []
+		next_positions.assign(next_steps.map(func(e: Dictionary) -> Vector2i: return e["pos"]))
+		pre_step_signal.emit(
+			current_pos,
+			next_positions,
+			gardens_visited,
+		)
+
+		if pre_step_signal_to_await != dummy_signal and iterations_since_await >= iterations_per_await:
+			iterations_since_await -= iterations_since_await
+			await pre_step_signal_to_await
+		iterations_since_await += 1
 
 		if (
 			steps_remaining == 0 and
@@ -50,6 +74,7 @@ func part_1(input: String, num_steps: int) -> int:
 				})
 
 
+	part_1_completed.emit(gardens_visited.size())
 	return gardens_visited.size()
 
 

@@ -1,0 +1,85 @@
+[gd_scene load_steps=6 format=3 uid="uid://bh33ouq3jy27g"]
+
+[ext_resource type="Script" path="res://src/day_21/day_21_visualizer.gd" id="1_5jvua"]
+[ext_resource type="PackedScene" uid="uid://ij80ps8ylook" path="res://src/mouse_camera.tscn" id="2_0pu6u"]
+[ext_resource type="Texture2D" uid="uid://ixsi5wlb3sin" path="res://src/day_21/tiles.png" id="2_suth3"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_y2psv"]
+texture = ExtResource("2_suth3")
+0:0/0 = 0
+1:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_av0eu"]
+sources/0 = SubResource("TileSetAtlasSource_y2psv")
+
+[node name="Day21Visualizer" type="Node2D"]
+script = ExtResource("1_5jvua")
+
+[node name="MouseCamera" parent="." instance=ExtResource("2_0pu6u")]
+
+[node name="TileMap" type="TileMap" parent="."]
+texture_filter = 1
+tile_set = SubResource("TileSet_av0eu")
+format = 2
+layer_1/tile_data = PackedInt32Array()
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer"]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Load:"
+
+[node name="Button" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "test_input.txt"
+
+[node name="Button2" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "input.txt"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Run Part 1 with 6 steps"
+
+[node name="Button2" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Run Part 1 with 64 steps"
+
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Number of Reachable Gardens:"
+
+[node name="Label2" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="CanvasLayer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="CanvasLayer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "Run Part 2"
+
+[node name="Label" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "Number of Reachable Gardens:"
+
+[node name="Label2" type="Label" parent="CanvasLayer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/Button" to="." method="load_and_repopulate" binds= ["res://src/day_21/test_input.txt"]]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer/Button2" to="." method="load_and_repopulate" binds= ["res://src/day_21/input.txt"]]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/Button" to="." method="run_part_1" binds= [6]]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/HBoxContainer2/Button2" to="." method="run_part_1" binds= [64]]
